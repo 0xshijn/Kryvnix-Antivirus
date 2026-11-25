@@ -1,4 +1,5 @@
 using System.IO;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using KryvnixAntivirus.Desktop.Data;
@@ -18,6 +19,12 @@ public interface ILocalThreatAnalyzer
 public sealed class LocalThreatAnalyzer : ILocalThreatAnalyzer
 {
     private readonly ILocalDatabaseService _db;
+    private readonly IAuthenticodeVerifier _authenticode;
+    private readonly IPeMlClassifierService _mlClassifier;
+
+    private const int MaxArchiveEntries = 100;
+    private const long MaxArchiveEntryBytes = 25 * 1024 * 1024;
+    private const double MaxSafeCompressionRatio = 100.0;
 
     // Official harmless EICAR antivirus test pattern
     private const string EicarSignature = @"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*";
@@ -46,9 +53,14 @@ public sealed class LocalThreatAnalyzer : ILocalThreatAnalyzer
         ("OpenProcessToken", 10)
     ];
 
-    public LocalThreatAnalyzer(ILocalDatabaseService db)
+    public LocalThreatAnalyzer(
+        ILocalDatabaseService db,
+        IAuthenticodeVerifier? authenticode = null,
+        IPeMlClassifierService? mlClassifier = null)
     {
         _db = db;
+        _authenticode = authenticode ?? new AuthenticodeVerifier();
+        _mlClassifier = mlClassifier ?? new PeMlClassifierService();
     }
 
     public async Task<string> ComputeSha256Async(string filePath, CancellationToken ct = default)
@@ -145,10 +157,108 @@ public sealed class LocalThreatAnalyzer : ILocalThreatAnalyzer
             return null;
         }
 
-        return InspectSampleBytes(fi.Name, filePath, sha256, fi.Length, sampleBytes, heuristicThreshold);
+        var ext = fi.Extension.ToLowerInvariant();
+        if (ext is ".zip" or ".docm" or ".xlsm" or ".pptm" or ".jar" or ".nupkg")
+        {
+            var archiveHit = await ScanZipArchiveSafeAsync(filePath, fi.Name, sha256, fi.Length, heuristicThreshold, ct);
+            if (archiveHit is not null) return archiveHit;
+        }
+
+        bool isSigned = false;
+        string signerName = string.Empty;
+        if (ext is ".exe" or ".dll" or ".scr" or ".sys")
+        {
+            var auth = _authenticode.VerifyFile(filePath);
+            isSigned = auth.IsValidSignature;
+            signerName = auth.SignerName;
+        }
+
+        return InspectSampleBytes(fi.Name, filePath, sha256, fi.Length, sampleBytes, heuristicThreshold, isSigned, signerName);
     }
 
-    private DetectionItem? InspectSampleBytes(string fileName, string filePath, string sha256, long fileSize, byte[] sampleBytes, int heuristicThreshold)
+    private async Task<DetectionItem?> ScanZipArchiveSafeAsync(
+        string archivePath,
+        string archiveName,
+        string archiveSha256,
+        long archiveSize,
+        int heuristicThreshold,
+        CancellationToken ct)
+    {
+        try
+        {
+            await using var fs = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 32768, useAsync: true);
+            using var archive = new ZipArchive(fs, ZipArchiveMode.Read, leaveOpen: false);
+
+            int count = 0;
+            foreach (var entry in archive.Entries)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (++count > MaxArchiveEntries) break;
+                if (entry.Length == 0) continue;
+
+                // Anti-Zip-Bomb compression ratio guard
+                if (entry.CompressedLength > 0 && entry.Length > 5 * 1024 * 1024)
+                {
+                    double ratio = (double)entry.Length / entry.CompressedLength;
+                    if (ratio >= MaxSafeCompressionRatio)
+                    {
+                        return new DetectionItem
+                        {
+                            FileName = archiveName,
+                            FilePath = archivePath,
+                            Sha256 = archiveSha256,
+                            ThreatName = $"Archive.ZipBomb.Suspicious (Ratio {ratio:0}:1)",
+                            Category = ThreatCategory.Other,
+                            Severity = ThreatSeverity.High,
+                            DetectionMethod = "Archive Deep Scan",
+                            HeuristicScore = 90,
+                            FileSize = archiveSize,
+                            ActionTaken = "Detected",
+                            DetectedAt = DateTime.Now
+                        };
+                    }
+                }
+
+                if (entry.Length > MaxArchiveEntryBytes) continue;
+
+                await using var entryStream = entry.Open();
+                using var ms = new MemoryStream((int)Math.Min(entry.Length, 512 * 1024));
+                var buffer = new byte[16384];
+                int totalRead = 0;
+                int n;
+                while (totalRead < 512 * 1024 && (n = await entryStream.ReadAsync(buffer.AsMemory(0, Math.Min(buffer.Length, 512 * 1024 - totalRead)), ct)) > 0)
+                {
+                    ms.Write(buffer, 0, n);
+                    totalRead += n;
+                }
+
+                var innerHit = await AnalyzeBytesAsync(entry.Name, $"{archivePath}::{entry.FullName}", ms.ToArray(), heuristicThreshold, ct);
+                if (innerHit is not null)
+                {
+                    innerHit.FileName = $"{archiveName} -> {entry.Name}";
+                    innerHit.FilePath = archivePath;
+                    innerHit.DetectionMethod = $"Archive ({innerHit.DetectionMethod})";
+                    return innerHit;
+                }
+            }
+        }
+        catch
+        {
+            // Corrupt/encrypted zip ignored cleanly
+        }
+
+        return null;
+    }
+
+    private DetectionItem? InspectSampleBytes(
+        string fileName,
+        string filePath,
+        string sha256,
+        long fileSize,
+        byte[] sampleBytes,
+        int heuristicThreshold,
+        bool isSigned = false,
+        string signerName = "")
     {
         // 2. EICAR standard test file check (even with trailing whitespace or comments)
         var asciiText = Encoding.ASCII.GetString(sampleBytes);
@@ -198,11 +308,16 @@ public sealed class LocalThreatAnalyzer : ILocalThreatAnalyzer
             }
         }
 
-        // 4. PE Parser + Entropy + Import Heuristic Scoring (only on PE executables/DLLs)
+        // 4. PE Parser + Entropy + Import Heuristic + Offline AI ML PE Classifier
         if (ext is ".exe" or ".dll" or ".scr" or ".sys" && sampleBytes.Length >= 256)
         {
             var (isPe, score, maxEntropy, indicators) = AnalyzePeAndHeuristics(sampleBytes);
-            if (isPe && score >= heuristicThreshold)
+            var ml = _mlClassifier.ClassifyPe(sampleBytes, isSigned);
+
+            // Valid Windows Authenticode signatures greatly reduce false-positive heuristic triggers
+            int effectiveScore = isSigned ? Math.Max(0, score - 40) : score;
+
+            if (isPe && (effectiveScore >= heuristicThreshold || (ml.IsMalicious && !isSigned)))
             {
                 var cat = indicators.Any(i => i.Contains("Crypt", StringComparison.OrdinalIgnoreCase))
                     ? ThreatCategory.Ransomware
@@ -210,18 +325,24 @@ public sealed class LocalThreatAnalyzer : ILocalThreatAnalyzer
                         ? ThreatCategory.Spyware
                         : ThreatCategory.Trojan;
 
+                bool triggeredByAi = effectiveScore < heuristicThreshold && ml.IsMalicious;
                 return new DetectionItem
                 {
                     FileName = fileName,
                     FilePath = filePath,
                     Sha256 = sha256,
-                    ThreatName = $"Heuristic.PE.{cat}.Gen (Score:{score})",
+                    ThreatName = triggeredByAi
+                        ? $"AI.Malware.PE.{cat} ({ml.ConfidencePercent:0.0}%)"
+                        : $"Heuristic.PE.{cat}.Gen (Score:{effectiveScore})",
                     Category = cat,
-                    Severity = score >= 85 ? ThreatSeverity.Critical : ThreatSeverity.High,
-                    DetectionMethod = "PE Heuristic",
-                    HeuristicScore = score,
+                    Severity = (effectiveScore >= 85 || ml.ConfidencePercent >= 85) ? ThreatSeverity.Critical : ThreatSeverity.High,
+                    DetectionMethod = triggeredByAi ? "Offline AI PE Classifier" : "PE Heuristic + AI",
+                    HeuristicScore = Math.Max(effectiveScore, (int)Math.Round(ml.ConfidencePercent)),
+                    AiConfidence = ml.ConfidencePercent,
                     Entropy = maxEntropy,
                     FileSize = fileSize,
+                    IsDigitallySigned = isSigned,
+                    SignerName = signerName,
                     ActionTaken = "Detected",
                     DetectedAt = DateTime.Now
                 };

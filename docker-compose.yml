@@ -18,6 +18,27 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: ./backend/KryvnixAntivirus.Api
+    container_name: kryvnix-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  admin-web:
+    build:
+      context: ./admin-web
+    container_name: kryvnix-admin-web
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
   adminer:
     image: adminer:4
     container_name: kryvnix-adminer

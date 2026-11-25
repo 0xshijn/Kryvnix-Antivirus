@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/KryvnixAntivirus.Api/KryvnixAntivirus.Api.csproj" />
+  </Folder>
   <Folder Name="/desktop/">
     <Project Path="desktop/KryvnixAntivirus.Desktop/KryvnixAntivirus.Desktop.csproj" />
     <Project Path="desktop/KryvnixAntivirus.Tests/KryvnixAntivirus.Tests.csproj" />

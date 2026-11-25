@@ -14,7 +14,14 @@ public partial class RealtimeProtectionViewModel : ObservableObject
     private readonly IRealtimeProtectionService _realtime;
     private readonly ILocalDatabaseService _db;
     private readonly IAppStateService _appState;
+    private readonly ISystemSecurityGuardService _systemGuard;
     private bool _suppressSave;
+
+    [ObservableProperty] private bool _isRefreshingGuards;
+    [ObservableProperty] private string _guardStatusMessage = string.Empty;
+
+    public ObservableCollection<ProcessMonitorItem> RunningProcesses { get; } = [];
+    public ObservableCollection<StartupGuardItem> StartupEntries { get; } = [];
 
     [ObservableProperty] private bool _isMasterEnabled = true;
     [ObservableProperty] private bool _fileMonitorEnabled = true;
@@ -43,11 +50,13 @@ public partial class RealtimeProtectionViewModel : ObservableObject
     public RealtimeProtectionViewModel(
         IRealtimeProtectionService realtime,
         ILocalDatabaseService db,
-        IAppStateService appState)
+        IAppStateService appState,
+        ISystemSecurityGuardService systemGuard)
     {
         _realtime = realtime;
         _db = db;
         _appState = appState;
+        _systemGuard = systemGuard;
 
         _realtime.StateChanged += (_, st) => Application.Current?.Dispatcher.Invoke(() => ApplyStateToProperties(st));
         _realtime.MonitorActivityLogged += (_, line) => Application.Current?.Dispatcher.Invoke(() =>
@@ -71,6 +80,64 @@ public partial class RealtimeProtectionViewModel : ObservableObject
         if (LiveMonitorLogs.Count == 0)
         {
             LiveMonitorLogs.Add($"[{DateTime.Now:HH:mm:ss}] Cảm biến FileSystemWatcher sẵn sàng ({MonitoredPaths.Count} thư mục được bảo vệ).");
+        }
+
+        if (RunningProcesses.Count == 0 && StartupEntries.Count == 0)
+        {
+            await RefreshSystemGuardsAsync();
+        }
+    }
+
+    [RelayCommand]
+    private async Task RefreshSystemGuardsAsync()
+    {
+        if (IsRefreshingGuards) return;
+        IsRefreshingGuards = true;
+        try
+        {
+            var procs = await _systemGuard.GetMonitoredProcessesAsync();
+            RunningProcesses.Clear();
+            foreach (var p in procs) RunningProcesses.Add(p);
+
+            var startups = await _systemGuard.GetStartupEntriesAsync();
+            StartupEntries.Clear();
+            foreach (var s in startups) StartupEntries.Add(s);
+
+            int susProcs = procs.Count(p => p.IsSuspicious);
+            int susStartups = startups.Count(s => s.IsSuspicious);
+            GuardStatusMessage = $"Đang giám sát {procs.Count} tiến trình ({susProcs} nghi vấn) & {startups.Count} mục Startup ({susStartups} nghi vấn).";
+        }
+        finally
+        {
+            IsRefreshingGuards = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task TerminateProcessAsync(ProcessMonitorItem? item)
+    {
+        if (item is null) return;
+        var ok = await _systemGuard.TerminateProcessAsync(item.Pid);
+        GuardStatusMessage = ok
+            ? $"Đã chấm dứt tiến trình {item.ProcessName} (PID {item.Pid})."
+            : $"Không thể dừng tiến trình {item.ProcessName} (có thể cần quyền Administrator).";
+        if (ok)
+        {
+            RunningProcesses.Remove(item);
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveStartupEntry(StartupGuardItem? item)
+    {
+        if (item is null || !item.CanRemove) return;
+        var ok = _systemGuard.RemoveHkcuStartupEntry(item.Name);
+        GuardStatusMessage = ok
+            ? $"Đã gỡ mục khởi động '{item.Name}' khỏi Registry HKCU."
+            : $"Không thể gỡ mục khởi động '{item.Name}'.";
+        if (ok)
+        {
+            StartupEntries.Remove(item);
         }
     }
 

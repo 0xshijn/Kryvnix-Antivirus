@@ -16,7 +16,7 @@ public partial class UpdatesViewModel : ObservableObject
     [ObservableProperty] private string _databaseVersion = "v2025.01.15";
     [ObservableProperty] private long _totalSignatures;
     [ObservableProperty] private int _yaraRuleCount = 486;
-    [ObservableProperty] private string _appVersion = "v1.0.0";
+    [ObservableProperty] private string _appVersion = "v2.0.0";
     [ObservableProperty] private bool _hasPendingUpdate = true;
     [ObservableProperty] private bool _isUpdating;
     [ObservableProperty] private int _updateProgress;

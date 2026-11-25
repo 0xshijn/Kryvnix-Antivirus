@@ -234,6 +234,102 @@
                     </StackPanel>
                 </Border>
             </Grid>
+
+            <!-- Live Process Monitor (Authenticode) & Windows Registry Startup Guard -->
+            <Grid Margin="0,16,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.1*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="0.9*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Process Monitor with Authenticode Verification -->
+                <Border Grid.Column="0" Style="{StaticResource KryvnixCardStyle}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="Giám sát tiến trình (Windows Authenticode)" Style="{StaticResource SectionTitleStyle}" />
+                                <TextBlock Text="{Binding GuardStatusMessage}" Style="{StaticResource MutedTextStyle}" Margin="0,2,0,0" />
+                            </StackPanel>
+                            <Button Content="Làm mới" Command="{Binding RefreshSystemGuardsCommand}" Style="{StaticResource KryvnixSecondaryButton}" HorizontalAlignment="Right" Padding="12,6" />
+                        </Grid>
+
+                        <Border Background="#0B121C" BorderBrush="#202D3E" BorderThickness="1" CornerRadius="10" MaxHeight="260">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
+                                <ItemsControl ItemsSource="{Binding RunningProcesses}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#1C2736" BorderThickness="0,0,0,1" Padding="6,7">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Margin="0,0,8,0">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding ProcessName}" FontSize="12.5" FontWeight="SemiBold" Foreground="#F1F5F9" />
+                                                            <TextBlock Text="{Binding Pid, StringFormat=' (PID {0})'}" FontSize="11.5" Foreground="#64748B" />
+                                                            <Border CornerRadius="5" Padding="6,1" Margin="8,0,0,0"
+                                                                    Background="{Binding IsSigned, Converter={StaticResource BoolToActivePillBg}}">
+                                                                <TextBlock Text="{Binding SignerName}" FontSize="10.5"
+                                                                           Foreground="{Binding IsSigned, Converter={StaticResource BoolToActiveBrush}}" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding ExecutablePath}" FontSize="11" Foreground="#7D91A8" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <Button Grid.Column="1" Content="Dừng"
+                                                            Command="{Binding DataContext.TerminateProcessCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource KryvnixDangerButton}" Padding="9,4" FontSize="11.5" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Registry Startup Persistence Guard -->
+                <Border Grid.Column="2" Style="{StaticResource KryvnixCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Bảo vệ khởi động (Registry Startup Guard)" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,10" />
+                        <Border Background="#0B121C" BorderBrush="#202D3E" BorderThickness="1" CornerRadius="10" MaxHeight="260">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
+                                <ItemsControl ItemsSource="{Binding StartupEntries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#1C2736" BorderThickness="0,0,0,1" Padding="6,7">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Margin="0,0,8,0">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" Foreground="#F1F5F9" />
+                                                            <Border Background="#18273A" CornerRadius="5" Padding="6,1" Margin="8,0,0,0">
+                                                                <TextBlock Text="{Binding Hive}" FontSize="10.5" Foreground="#38BDF8" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Command}" FontSize="11" Foreground="#7D91A8" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <Button Grid.Column="1" Content="Gỡ"
+                                                            Command="{Binding DataContext.RemoveStartupEntryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Visibility="{Binding CanRemove, Converter={StaticResource BoolToVis}}"
+                                                            Style="{StaticResource KryvnixDangerButton}" Padding="9,4" FontSize="11.5" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

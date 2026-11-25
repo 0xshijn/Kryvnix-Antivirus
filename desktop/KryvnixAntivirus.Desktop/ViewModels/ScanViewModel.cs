@@ -17,6 +17,7 @@ public partial class ScanViewModel : ObservableObject
     private readonly IQuarantineService _quarantine;
     private readonly ILocalDatabaseService _db;
     private readonly IAppStateService _appState;
+    private readonly IThreatIntelligenceService _threatIntel;
 
     [ObservableProperty] private ScanMode _selectedMode = ScanMode.Quick;
     [ObservableProperty] private bool _isScanning;
@@ -44,12 +45,14 @@ public partial class ScanViewModel : ObservableObject
         IScanEngineService scanner,
         IQuarantineService quarantine,
         ILocalDatabaseService db,
-        IAppStateService appState)
+        IAppStateService appState,
+        IThreatIntelligenceService threatIntel)
     {
         _scanner = scanner;
         _quarantine = quarantine;
         _db = db;
         _appState = appState;
+        _threatIntel = threatIntel;
 
         _scanner.ProgressChanged += (_, info) => Application.Current?.Dispatcher.Invoke(() =>
         {
@@ -283,6 +286,16 @@ public partial class ScanViewModel : ObservableObject
         DetectedThreats.Remove(item);
         StatusBanner = $"Đã thêm {item.FileName} vào danh sách ngoại lệ.";
         await _appState.RefreshGlobalStateAsync();
+    }
+
+    [RelayCommand]
+    private async Task LookupThreatIntelAsync(DetectionItem? item)
+    {
+        if (item is null) return;
+        StatusBanner = $"Đang tra cứu Threat Intelligence cho {item.FileName} (SHA-256: {item.Sha256[..Math.Min(16, item.Sha256.Length)]}...)...";
+        var res = await _threatIntel.LookupSha256Async(item.Sha256);
+        item.ThreatIntelSummary = res.Summary;
+        StatusBanner = $"[{res.Source}] {res.Summary}";
     }
 
     [RelayCommand]

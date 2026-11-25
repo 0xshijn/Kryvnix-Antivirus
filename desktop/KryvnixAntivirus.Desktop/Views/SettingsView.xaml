@@ -79,6 +79,26 @@
                         </StackPanel>
                         <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding ShowDesktopNotifications, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                     </Grid>
+
+                    <Border Height="1" Background="#1E2B3C" Margin="0,4" />
+
+                    <Grid Margin="0,8">
+                        <StackPanel>
+                            <TextBlock Text="Tích hợp menu chuột phải Windows Explorer (&quot;Quét bằng Kryvnix Antivirus&quot;)" Style="{StaticResource BodyTextStyle}" FontWeight="Medium" />
+                            <TextBlock Text="Đăng ký vào HKCU (không cần Admin) để quét nhanh bất kỳ tệp hoặc thư mục nào." Style="{StaticResource SecondaryTextStyle}" />
+                        </StackPanel>
+                        <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding EnableContextMenuIntegration, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <Border Height="1" Background="#1E2B3C" Margin="0,4" />
+
+                    <Grid Margin="0,8">
+                        <StackPanel>
+                            <TextBlock Text="Bảo vệ chống giả mạo (Tamper Protection) &amp; Khóa DPAPI" Style="{StaticResource BodyTextStyle}" FontWeight="Medium" />
+                            <TextBlock Text="Kho cách ly AES-256-GCM được bảo vệ bằng Windows DPAPI (ProtectedData) gắn theo người dùng." Style="{StaticResource SecondaryTextStyle}" />
+                        </StackPanel>
+                        <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding EnableTamperProtection, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -169,8 +189,14 @@
 
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
                         <Button Content="Kiểm tra Named Pipe" Command="{Binding TestNamedPipeCommand}" Style="{StaticResource KryvnixSecondaryButton}" Margin="0,0,10,0" />
-                        <Button Content="Gửi Device Heartbeat" Command="{Binding SendHeartbeatCommand}" Style="{StaticResource KryvnixSecondaryButton}" Margin="0,0,14,0" />
-                        <TextBlock Text="{Binding PendingSyncCount, StringFormat='Hàng đợi đồng bộ ngoại tuyến: {0} mục'}" VerticalAlignment="Center" Style="{StaticResource SecondaryTextStyle}" />
+                        <Button Content="Gửi Device Heartbeat" Command="{Binding SendHeartbeatCommand}" Style="{StaticResource KryvnixSecondaryButton}" Margin="0,0,10,0" />
+                        <Button Content="Đồng bộ hàng đợi ngay" Command="{Binding FlushSyncQueueCommand}" Style="{StaticResource KryvnixSecondaryButton}" Margin="0,0,14,0" />
+                        <TextBlock Text="{Binding PendingSyncCount, StringFormat='Chờ đồng bộ: {0} mục'}" VerticalAlignment="Center" Style="{StaticResource SecondaryTextStyle}" />
+                    </StackPanel>
+
+                    <StackPanel Margin="0,8,0,6">
+                        <TextBlock Text="VirusTotal v3 API Key (tùy chọn cho tra cứu Threat Intelligence — mặc định dùng MalwareBazaar)" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,0,5" />
+                        <TextBox Style="{StaticResource KryvnixTextBox}" Text="{Binding VirusTotalApiKey, Mode=TwoWay}" />
                     </StackPanel>
 
                     <TextBlock Text="{Binding DatabasePath, StringFormat='CSDL SQLite cục bộ: {0}'}" FontSize="11.5" Foreground="#64748B" Margin="0,4,0,0" />

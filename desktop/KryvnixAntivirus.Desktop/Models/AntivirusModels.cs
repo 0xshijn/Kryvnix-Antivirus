@@ -112,8 +112,12 @@ public sealed class DetectionItem
     public ThreatSeverity Severity { get; set; } = ThreatSeverity.High;
     public string DetectionMethod { get; set; } = "Signature";
     public int HeuristicScore { get; set; }
+    public double AiConfidence { get; set; }
     public double Entropy { get; set; }
     public long FileSize { get; set; }
+    public bool IsDigitallySigned { get; set; }
+    public string SignerName { get; set; } = string.Empty;
+    public string ThreatIntelSummary { get; set; } = string.Empty;
     public string ActionTaken { get; set; } = "Detected";
     public DateTime DetectedAt { get; set; } = DateTime.Now;
 }
@@ -214,6 +218,10 @@ public sealed class AppSettings
     public string DeviceId { get; set; } = $"KRV-{Environment.MachineName.ToUpperInvariant()}";
     public bool HasPendingUpdate { get; set; } = true;
     public bool SimulateServiceUnavailable { get; set; }
+    public bool EnableAiPeClassifier { get; set; } = true;
+    public bool EnableTamperProtection { get; set; }
+    public bool EnableContextMenuIntegration { get; set; }
+    public string VirusTotalApiKey { get; set; } = string.Empty;
 }
 
 public sealed class EngineStatusSnapshot
@@ -285,6 +293,47 @@ public sealed class AuthResult
 
     public static AuthResult Ok(UserAccount user, string message) => new() { Success = true, User = user, Message = message };
     public static AuthResult Fail(string message) => new() { Success = false, Message = message };
+}
+
+public sealed class ProcessMonitorItem
+{
+    public int Pid { get; set; }
+    public string ProcessName { get; set; } = string.Empty;
+    public string ExecutablePath { get; set; } = string.Empty;
+    public double MemoryMb { get; set; }
+    public bool IsSigned { get; set; }
+    public string SignerName { get; set; } = "Không có chữ ký số";
+    public bool IsSuspicious { get; set; }
+    public string RiskReason { get; set; } = "Bình thường";
+}
+
+public sealed class StartupGuardItem
+{
+    public string Name { get; set; } = string.Empty;
+    public string Command { get; set; } = string.Empty;
+    public string Hive { get; set; } = "HKCU";
+    public string RegistryPath { get; set; } = string.Empty;
+    public bool IsSuspicious { get; set; }
+    public string RiskReason { get; set; } = "Hợp lệ";
+    public bool CanRemove { get; set; }
+}
+
+public sealed class ThreatIntelResult
+{
+    public bool Found { get; set; }
+    public string Source { get; set; } = "Local / Offline";
+    public string MalwareFamily { get; set; } = string.Empty;
+    public string Summary { get; set; } = string.Empty;
+    public DateTime CheckedAt { get; set; } = DateTime.Now;
+}
+
+public sealed class PeAiClassificationResult
+{
+    public bool IsPe { get; set; }
+    public double MalwareProbability { get; set; } // 0.0 - 1.0
+    public double ConfidencePercent => Math.Round(MalwareProbability * 100.0, 1);
+    public bool IsMalicious => MalwareProbability >= 0.68;
+    public List<string> TopFeatures { get; set; } = [];
 }
 
 public static class ThreatCategoryMetadata

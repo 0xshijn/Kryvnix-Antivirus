@@ -78,6 +78,17 @@ public partial class App : Application
             mainVm.AuthVm.Open(AuthDialogMode.Register);
         }
 
+        // Handle Windows Explorer Right-Click Context Menu: --scan "<path>"
+        int scanArgIdx = Array.FindIndex(e.Args, a => a.Equals("--scan", StringComparison.OrdinalIgnoreCase));
+        if (scanArgIdx >= 0 && scanArgIdx + 1 < e.Args.Length)
+        {
+            var scanPath = e.Args[scanArgIdx + 1];
+            mainVm.Navigate(NavigationPage.VirusScan);
+            mainVm.ScanVm.AddTargetPath(scanPath);
+            mainVm.ScanVm.SelectedMode = ScanMode.Custom;
+            _ = mainVm.ScanVm.StartSelectedScanCommand.ExecuteAsync(null);
+        }
+
         // Fire non-blocking background heartbeat to central backend
         _ = Task.Run(async () =>
         {
@@ -90,6 +101,11 @@ public partial class App : Application
     {
         // Persistence & Core Services
         services.AddSingleton<ILocalDatabaseService, LocalDatabaseService>();
+        services.AddSingleton<IAuthenticodeVerifier, AuthenticodeVerifier>();
+        services.AddSingleton<IPeMlClassifierService, PeMlClassifierService>();
+        services.AddSingleton<ISystemSecurityGuardService, SystemSecurityGuardService>();
+        services.AddSingleton<IShellIntegrationService, ShellIntegrationService>();
+        services.AddHttpClient<IThreatIntelligenceService, ThreatIntelligenceService>();
         services.AddSingleton<ILocalThreatAnalyzer, LocalThreatAnalyzer>();
         services.AddSingleton<IEngineIpcClient, NamedPipeEngineClient>();
         services.AddSingleton<IScanEngineService, HybridScanEngineService>();

@@ -1,8 +1,8 @@
-name: Build, Test & Release Kryvnix Antivirus
+name: Build, Test & Release Kryvnix Antivirus v2.0
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
@@ -24,14 +24,24 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore KryvnixAntivirus.slnx
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
-      - name: Build Release
-        run: dotnet build KryvnixAntivirus.slnx -c Release --no-restore
+      - name: Restore & Build .NET 10 Solution (Desktop + Backend API + Tests)
+        run: |
+          dotnet restore KryvnixAntivirus.slnx
+          dotnet build KryvnixAntivirus.slnx -c Release --no-restore
 
-      - name: Run Unit Tests
+      - name: Run All 16 Unit Tests
         run: dotnet test desktop/KryvnixAntivirus.Tests/KryvnixAntivirus.Tests.csproj -c Release --no-build --verbosity normal
+
+      - name: Build React TypeScript Admin Console
+        working-directory: admin-web
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
 
       - name: Publish Standalone Windows x64 Executable
         run: >

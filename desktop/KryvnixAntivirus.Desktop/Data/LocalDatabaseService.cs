@@ -35,6 +35,8 @@ public interface ILocalDatabaseService
     Task<RealtimeProtectionState> LoadRealtimeStateAsync(CancellationToken ct = default);
     Task SaveRealtimeStateAsync(RealtimeProtectionState state, CancellationToken ct = default);
     Task EnqueueSyncPayloadAsync(string endpoint, string payloadJson, CancellationToken ct = default);
+    Task<List<(long Id, string Endpoint, string PayloadJson)>> GetPendingSyncPayloadsAsync(int limit = 50, CancellationToken ct = default);
+    Task DeleteSyncPayloadAsync(long id, CancellationToken ct = default);
     Task<int> GetPendingSyncCountAsync(CancellationToken ct = default);
     Task<UserAccount?> GetUserByUsernameOrEmailAsync(string identifier, CancellationToken ct = default);
     Task<UserAccount?> GetUserByIdAsync(string userId, CancellationToken ct = default);
@@ -1090,6 +1092,33 @@ public sealed class LocalDatabaseService : ILocalDatabaseService
         cmd.Parameters.AddWithValue("$ep", endpoint);
         cmd.Parameters.AddWithValue("$json", payloadJson);
         cmd.Parameters.AddWithValue("$dt", DateTime.Now.ToString("O"));
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    public async Task<List<(long Id, string Endpoint, string PayloadJson)>> GetPendingSyncPayloadsAsync(int limit = 50, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT id, endpoint, payload_json FROM sync_queue ORDER BY id ASC LIMIT $limit;";
+        cmd.Parameters.AddWithValue("$limit", limit);
+
+        var items = new List<(long, string, string)>();
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        while (await reader.ReadAsync(ct))
+        {
+            items.Add((reader.GetInt64(0), reader.GetString(1), reader.GetString(2)));
+        }
+        return items;
+    }
+
+    public async Task DeleteSyncPayloadAsync(long id, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM sync_queue WHERE id = $id;";
+        cmd.Parameters.AddWithValue("$id", id);
         await cmd.ExecuteNonQueryAsync(ct);
     }
 

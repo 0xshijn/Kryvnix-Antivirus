@@ -10,7 +10,7 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <AssemblyName>KryvnixAntivirus</AssemblyName>
     <RootNamespace>KryvnixAntivirus.Desktop</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Product>Kryvnix Antivirus</Product>
     <Company>Kryvnix Security</Company>
     <Description>Kryvnix Antivirus Desktop Endpoint Protection</Description>

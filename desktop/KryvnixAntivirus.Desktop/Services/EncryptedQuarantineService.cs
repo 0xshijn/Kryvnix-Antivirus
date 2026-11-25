@@ -42,11 +42,32 @@ public sealed class EncryptedQuarantineService : IQuarantineService
         if (File.Exists(_keyFilePath))
         {
             var raw = File.ReadAllBytes(_keyFilePath);
-            if (raw.Length == 32) return raw;
+            // DPAPI-protected format: "KDP1" (4) + DPAPI blob
+            if (raw.Length > 4 && raw[0] == (byte)'K' && raw[1] == (byte)'D' && raw[2] == (byte)'P' && raw[3] == (byte)'1')
+            {
+                return ProtectedData.Unprotect(raw[4..], null, DataProtectionScope.CurrentUser);
+            }
+
+            // Migrate legacy raw 32-byte key to DPAPI automatically
+            if (raw.Length == 32)
+            {
+                WriteDpapiProtectedKey(raw);
+                return raw;
+            }
         }
 
         var key = RandomNumberGenerator.GetBytes(32); // 256-bit AES key
-        File.WriteAllBytes(_keyFilePath, key);
+        WriteDpapiProtectedKey(key);
+        return key;
+    }
+
+    private void WriteDpapiProtectedKey(byte[] key)
+    {
+        var protectedBlob = ProtectedData.Protect(key, null, DataProtectionScope.CurrentUser);
+        var payload = new byte[4 + protectedBlob.Length];
+        "KDP1"u8.CopyTo(payload);
+        protectedBlob.CopyTo(payload, 4);
+        File.WriteAllBytes(_keyFilePath, payload);
         try
         {
             File.SetAttributes(_keyFilePath, FileAttributes.Hidden);
@@ -55,7 +76,6 @@ public sealed class EncryptedQuarantineService : IQuarantineService
         {
             // Ignore on filesystems that do not support Hidden attribute
         }
-        return key;
     }
 
     public async Task<QuarantineItem> QuarantineFileAsync(DetectionItem detection, CancellationToken ct = default)

@@ -1,14 +1,14 @@
-# Kryvnix Antivirus
+# Kryvnix Antivirus v2.0 — Enterprise Endpoint Security Suite
 
 <p align="center">
-  <strong>Modern Windows Endpoint Protection built with C# / .NET 10 / WPF (MVVM), SQLite, LiveCharts2, AES-256-GCM Quarantine Vault, Ed25519 Signature Updates & C++20 Named Pipe IPC.</strong>
+  <strong>Full-Stack Windows Endpoint Protection Platform: C# / .NET 10 WPF (MVVM) + C++20 Native Named Pipe Engine + ASP.NET Core 10 SignalR/JWT API + React TypeScript Admin Console + Offline AI PE Classifier + AES-256-GCM DPAPI Quarantine Vault.</strong>
 </p>
 
 <p align="center">
   <img alt=".NET 10" src="https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet" />
-  <img alt="WPF Windows" src="https://img.shields.io/badge/Platform-Windows%2010%2F11%20x64-0078D6?style=flat-square&logo=windows" />
-  <img alt="SQLite" src="https://img.shields.io/badge/Database-SQLite%20%2B%20PostgreSQL-003B57?style=flat-square&logo=sqlite" />
-  <img alt="Encryption" src="https://img.shields.io/badge/Security-AES--256--GCM%20%7C%20Ed25519%20%7C%20PBKDF2-22C55E?style=flat-square" />
+  <img alt="C++20" src="https://img.shields.io/badge/Engine-C%2B%2B20%20Named%20Pipe-00599C?style=flat-square&logo=cplusplus" />
+  <img alt="React TypeScript" src="https://img.shields.io/badge/Admin-React%2019%20%2B%20TypeScript-61DAFB?style=flat-square&logo=react" />
+  <img alt="Security" src="https://img.shields.io/badge/Security-Authenticode%20%7C%20DPAPI%20%7C%20AES--256--GCM%20%7C%20Ed25519%20%7C%20PBKDF2-22C55E?style=flat-square" />
 </p>
 
 ---
@@ -23,63 +23,65 @@
 
 ---
 
-## Tính năng nổi bật
+## Hệ sinh thái công nghệ v2.0
 
-- **Giao diện Fluent Dark chuẩn Windows 11**: Thanh tiêu đề tùy biến (`WindowChrome`), hỗ trợ Native Snap/Resize, tự căn theo DPI (`100%–200%`), thanh điều hướng Sidebar thu gọn mượt (`240px ↔ 72px`) và thu nhỏ xuống **System Tray** không ngắt bảo vệ nền.
-- **Dashboard thời gian thực**:
-  - Hero Card với **5 trạng thái thực tế** (*Protected, Attention Required, Threat Detected, Protection Disabled, Service Unavailable*).
-  - 4 thẻ thao tác nhanh (*Quét nhanh, Quét toàn bộ, Quét tùy chỉnh, Cập nhật CSDL*).
-  - Thống kê bảo mật lọc theo thời gian (*Hôm nay, 7 ngày qua, 30 ngày qua, Tất cả*) và biểu đồ Doughnut **LiveCharts2** phân loại 7 nhóm mối đe dọa (*Trojan, Ransomware, Spyware, Worm, Backdoor, Adware, Khác*).
-- **Bộ quét đa luồng & Phân tích đa tầng**:
-  - Hỗ trợ **Quét nhanh / Quét toàn bộ / Quét tùy chỉnh** (kéo thả tệp/thư mục), tạm dừng/tiếp tục/hủy quét.
-  - Tra cứu chữ ký **SHA-256** trong SQLite, phát hiện chuẩn **EICAR**, quy tắc **YARA-style**, phân tích **PE Header + Shannon Entropy + Suspicious Win32 Imports + Heuristic Scoring**.
-- **Bảo vệ thời gian thực (Real-time Protection)**:
-  - Giám sát thư mục trọng yếu bằng `FileSystemWatcher` + hàng đợi bất đồng bộ, bộ lọc ngoại lệ (*Folder / File / Extension*) và điều khiển từng mô-đun bảo vệ.
-- **Khu cách ly mã hóa AES-256-GCM (Quarantine Vault)**:
-  - Mã hóa tệp nghi ngờ thành định dạng `.kqv` (AES-256-GCM + nonce 96-bit + authentication tag 128-bit), hỗ trợ **Khôi phục**, **Lưu nơi khác** và **Xóa vĩnh viễn** ghi đè an toàn.
-- **Cập nhật chữ ký xác thực Ed25519 & Đồng bộ**:
-  - Xác thực gói chữ ký bằng chữ ký số **Ed25519**, ghi giao dịch nguyên tử (SQLite transaction), gửi Device Heartbeat tới Backend REST API kèm hàng đợi đồng bộ ngoại tuyến.
-- **Tài khoản người dùng cục bộ**:
-  - Đăng ký tài khoản mới, đăng nhập bằng Tên đăng nhập hoặc Email, đo độ mạnh mật khẩu trực tiếp, đổi mật khẩu và lưu băm bằng **PBKDF2-SHA256 (120.000 vòng + muối 16 byte)**.
+### 1. Desktop Endpoint Agent (`desktop/KryvnixAntivirus.Desktop` — C# / .NET 10 / WPF)
+- **Fluent Dark Windows 11 UI**: Custom `WindowChrome` (Native Snap/Resize, DPI 100%–200%), Sidebar thu gọn mượt (`240px ↔ 72px`), **System Tray** chạy nền và **Menu chuột phải Windows Explorer** (*"Quét bằng Kryvnix Antivirus"*).
+- **Dashboard thời gian thực**: Hero Card 5 trạng thái thực (*Protected, Attention Required, Threat Detected, Protection Disabled, Service Unavailable*), 4 thao tác nhanh, thống kê theo mốc thời gian và biểu đồ Doughnut **LiveCharts2**.
+- **Đa tầng phát hiện mã độc**:
+  - Tra cứu chữ ký **SHA-256** (SQLite), nhận diện chuẩn **EICAR**, luật **YARA-style**.
+  - **Windows Authenticode (`WinVerifyTrust` Win32 P/Invoke)**: Tự động xác thực chữ ký số gốc của Windows để giảm cảnh báo giả (False Positive).
+  - **Offline AI PE Malware Classifier**: Mô hình phân loại tuyến tính 8 đặc trưng cấu trúc PE (Entropy, RWX sections, Packer, Import density, Size anomaly, Authenticode) chấm xác suất mã độc cục bộ `< 2ms`.
+  - **Deep Archive Scanner (Chống Zip Bomb)**: Quét sâu tệp nén (`.zip`, `.docm`, `.xlsm`, `.jar`, `.nupkg`) trực tiếp trong RAM với kiểm soát tỷ lệ nén chống Zip Bomb.
+  - **Threat Intelligence Lookup**: Tra cứu SHA-256 trực tuyến qua **MalwareBazaar API** và **VirusTotal v3 API** (tùy chọn API Key).
+- **Bảo vệ thời gian thực & Hệ thống**:
+  - `FileSystemWatcher` giám sát tệp thời gian thực + Bộ lọc ngoại lệ.
+  - **Process Monitor** (liệt kê tiến trình + xác thực Authenticode + nút dừng tiến trình).
+  - **Registry Startup Guard** (kiểm tra khóa `HKCU/HKLM\...\Run`, phát hiện và gỡ lệnh khởi động đáng ngờ).
+- **Khu cách ly mã hóa AES-256-GCM + Windows DPAPI (`ProtectedData`)**: Khóa AES-256 được bảo vệ bởi DPAPI gắn theo người dùng Windows (`KDP1`), tệp cách ly `.kqv` hỗ trợ Khôi phục / Lưu nơi khác / Xóa vĩnh viễn.
+- **Tài khoản & Cập nhật**: Đăng ký/Đăng nhập/Đổi mật khẩu băm **PBKDF2-SHA256 (120.000 vòng)**; cập nhật chữ ký xác thực **Ed25519** qua SQLite transaction.
+
+### 2. Native C++20 Engine (`engine/` — Win32 Named Pipe Server)
+- Biên dịch thuần C++20 thành `kryvnix_engine.exe` (SHA-256, Entropy, YARA/EICAR CLI + Win32 Named Pipe Server `\\.\pipe\KryvnixAntivirusPipe` giao tiếp trực tiếp với ứng dụng WPF).
+
+### 3. Central Management Backend (`backend/KryvnixAntivirus.Api` — ASP.NET Core 10)
+- REST API + **SignalR Hub (`/hubs/security`)** + **JWT Bearer RBAC** + **Ed25519 Signed Signature Feed** (`/api/v1/updates/latest`) + Device Heartbeat + Remote Scan dispatch + Audit Logs.
+
+### 4. Enterprise Admin Web Console (`admin-web/` — React 19 + TypeScript + Vite)
+- Bảng điều khiển quản trị tập trung: Tổng quan hạm đội thiết bị, Quản lý máy trạm + **Quét từ xa**, CRUD chữ ký SHA-256, Quản lý luật YARA, Nhật ký kiểm toán và xuất báo cáo JSON.
+
+### 5. Bộ cài đặt Windows & CI/CD (`installer/` & `.github/workflows/release.yml`)
+- Script **Inno Setup 6** ([installer/KryvnixAntivirus.iss](installer/KryvnixAntivirus.iss)) đóng gói trình cài đặt Windows hoàn chỉnh kèm shortcut và menu chuột phải.
 
 ---
 
-## Tải và chạy nhanh (File thực thi Windows `.exe`)
+## Tải và chạy nhanh (Windows x64)
 
-Không cần cài đặt .NET SDK hay Visual Studio:
-
-1. Mở mục **[Releases](../../releases)** trên GitHub.
-2. Tải về **`KryvnixAntivirus.exe`** (bản chạy trực tiếp một tệp duy nhất) hoặc **`KryvnixAntivirus-win-x64.zip`**.
-3. Giải nén (nếu tải file `.zip`) và nhấp đúp **`KryvnixAntivirus.exe`** để chạy ngay trên Windows 10/11 (x64).
-
-> **Lưu ý**: Ứng dụng tự tạo cơ sở dữ liệu SQLite cục bộ tại `%LocalAppData%\KryvnixAntivirus\kryvnix.db` và kho cách ly tại `%LocalAppData%\KryvnixAntivirus\Quarantine\`.
+1. Mở mục **[Releases](https://github.com/0xshijn/Kryvnix-Antivirus/releases)** trên GitHub.
+2. Tải về **`KryvnixAntivirus.exe`** (chạy trực tiếp 1 tệp duy nhất, **không cần cài .NET 10**) hoặc gói **`KryvnixAntivirus-v2.0.0-win-x64.zip`** (gồm cả `KryvnixAntivirus.exe` + `kryvnix_engine.exe`).
+3. Nhấp đúp **`KryvnixAntivirus.exe`** để sử dụng ngay trên Windows 10/11 x64.
 
 ---
 
-## Build từ mã nguồn (Dành cho nhà phát triển)
-
-### Yêu cầu
-- Windows 10/11 x64
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-
-### Các lệnh build, kiểm thử và đóng gói `.exe`
+## Chạy toàn bộ hệ sinh thái từ mã nguồn
 
 ```powershell
-# 1. Khôi phục gói NuGet và biên dịch
+# 1. Build & chạy toàn bộ 16 unit test (.NET 10)
 dotnet restore KryvnixAntivirus.slnx
 dotnet build KryvnixAntivirus.slnx -c Release
-
-# 2. Chạy toàn bộ unit test (11/11 tests)
 dotnet test desktop/KryvnixAntivirus.Tests/KryvnixAntivirus.Tests.csproj -c Release
 
-# 3. Chạy trực tiếp ứng dụng
-dotnet run --project desktop/KryvnixAntivirus.Desktop/KryvnixAntivirus.Desktop.csproj -c Release
+# 2. Chạy Native C++20 Named Pipe Engine (tùy chọn - bật chế độ C++ Native Service)
+.\engine\bin\kryvnix_engine.exe --serve
 
-# 4. Đóng gói file thực thi độc lập (.exe self-contained)
-dotnet publish desktop/KryvnixAntivirus.Desktop/KryvnixAntivirus.Desktop.csproj `
-  -c Release -r win-x64 --self-contained true `
-  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
-  -p:EnableCompressionInSingleFile=true -o publish/win-x64
+# 3. Chạy Backend API (ASP.NET Core 10 - http://localhost:8080)
+dotnet run --project backend/KryvnixAntivirus.Api/KryvnixAntivirus.Api.csproj
+
+# 4. Chạy React Admin Dashboard (http://localhost:5173)
+cd admin-web && npm install && npm run dev
+
+# 5. Hoặc khởi chạy trọn bộ Server Stack bằng Docker Compose
+docker compose up -d --build
 ```
 
 ---
@@ -88,16 +90,15 @@ dotnet publish desktop/KryvnixAntivirus.Desktop/KryvnixAntivirus.Desktop.csproj 
 
 ```text
 ├── desktop/
-│   ├── KryvnixAntivirus.Desktop/   # Ứng dụng WPF (.NET 10, MVVM, LiveCharts2, SQLite, AES-256-GCM)
-│   └── KryvnixAntivirus.Tests/     # Bộ kiểm thử đơn vị xUnit (11 tests)
-├── engine/                         # Nền tảng C++20 CMake + vcpkg & giao thức Named Pipe IPC
-├── database/
-│   ├── postgres/                   # Migration SQL PostgreSQL 16 (Backend)
-│   └── sqlite/                     # Schema SQLite 3 (Endpoint cục bộ)
-├── docs/                           # Tài liệu kiến trúc, ERD và ảnh minh họa
-├── .github/workflows/release.yml   # GitHub Actions CI/CD tự động build, test & phát hành .exe
-├── docker-compose.yml              # PostgreSQL 16 + Adminer
+│   ├── KryvnixAntivirus.Desktop/   # Ứng dụng WPF .NET 10 (MVVM, Authenticode, AI PE, DPAPI, LiveCharts2)
+│   └── KryvnixAntivirus.Tests/     # Bộ kiểm thử đơn vị xUnit (16 tests)
+├── engine/                         # Native C++20 Engine + Win32 Named Pipe Server (kryvnix_engine.exe)
+├── backend/
+│   └── KryvnixAntivirus.Api/       # ASP.NET Core 10 REST API + SignalR + JWT RBAC + Ed25519 Feed
+├── admin-web/                      # React 19 + TypeScript Enterprise Admin Dashboard
+├── database/                       # Migration SQL PostgreSQL 16 & SQLite 3
+├── installer/                      # Inno Setup 6 Windows Installer script
+├── docs/                           # Kiến trúc hệ thống, ERD & ảnh giao diện
+├── docker-compose.yml              # PostgreSQL 16 + Backend API + React Admin + Adminer
 └── KryvnixAntivirus.slnx           # Solution .NET 10
 ```
-
-Xem chi tiết kiến trúc hệ thống, sơ đồ ERD và lộ trình 10 phase tại [docs/Architecture-and-Roadmap.md](docs/Architecture-and-Roadmap.md).

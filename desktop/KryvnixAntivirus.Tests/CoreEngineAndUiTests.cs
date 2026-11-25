@@ -284,4 +284,90 @@ public sealed class CoreEngineAndUiTests : IDisposable
         Assert.False((await auth2.LoginAsync("tranan", "SecurePass123")).Success);
         Assert.True((await auth2.LoginAsync("tranan", "NewStrongPass456!")).Success);
     }
+
+    [Fact]
+    public void Authenticode_WindowsSystemBinary_IsVerifiedTrusted()
+    {
+        var verifier = new AuthenticodeVerifier();
+        var notepadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
+        var res = verifier.VerifyFile(notepadPath);
+
+        Assert.True(res.IsValidSignature, $"Expected cmd.exe to have valid Windows Authenticode signature, got {res.Status}");
+        Assert.False(string.IsNullOrWhiteSpace(res.SignerName));
+    }
+
+    [Fact]
+    public void OfflineAiPeClassifier_ScoresSuspiciousUnsignedPeHigherThanSignedPe()
+    {
+        var ml = new PeMlClassifierService();
+
+        var buffer = new byte[2048];
+        buffer[0] = (byte)'M'; buffer[1] = (byte)'Z';
+        BitConverter.TryWriteBytes(buffer.AsSpan(0x3C, 4), 0x80);
+        buffer[0x80] = (byte)'P'; buffer[0x81] = (byte)'E';
+        BitConverter.TryWriteBytes(buffer.AsSpan(0x86, 2), (ushort)1);
+        BitConverter.TryWriteBytes(buffer.AsSpan(0x94, 2), (ushort)0xE0);
+        int sec = 0x80 + 24 + 0xE0;
+        Encoding.ASCII.GetBytes("UPX0\0\0\0\0").CopyTo(buffer, sec);
+        BitConverter.TryWriteBytes(buffer.AsSpan(sec + 36, 4), 0xE0000020u);
+        Encoding.ASCII.GetBytes("VirtualAllocEx\0WriteProcessMemory\0CreateRemoteThread\0CryptEncrypt\0IsDebuggerPresent\0").CopyTo(buffer, sec + 64);
+
+        var unsignedRes = ml.ClassifyPe(buffer, isDigitallySigned: false);
+        var signedRes = ml.ClassifyPe(buffer, isDigitallySigned: true);
+
+        Assert.True(unsignedRes.IsPe);
+        Assert.True(unsignedRes.IsMalicious, $"Expected AI probability >= 68%, got {unsignedRes.ConfidencePercent}%");
+        Assert.True(unsignedRes.MalwareProbability > signedRes.MalwareProbability);
+    }
+
+    [Fact]
+    public async Task DeepArchiveScanner_DetectsThreatHiddenInsideZipFile()
+    {
+        await _db.InitializeAsync();
+        var analyzer = new LocalThreatAnalyzer(_db);
+
+        var zipPath = Path.Combine(_tempRoot, "suspicious_bundle.zip");
+        using (var archive = System.IO.Compression.ZipFile.Open(zipPath, System.IO.Compression.ZipArchiveMode.Create))
+        {
+            var entry = archive.CreateEntry("nested_payload.txt");
+            await using var writer = new StreamWriter(entry.Open());
+            await writer.WriteAsync("KRYVNIX-SIMULATED-THREAT-MARKER inside archive");
+        }
+
+        var hit = await analyzer.AnalyzeFileAsync(zipPath, heuristicThreshold: 65, maxFileSizeBytes: 20 * 1024 * 1024);
+
+        Assert.NotNull(hit);
+        Assert.Contains("Archive", hit!.DetectionMethod);
+        Assert.Equal("YARA.Kryvnix.TestTrojan", hit.ThreatName);
+    }
+
+    [Fact]
+    public async Task DpapiQuarantineKey_UsesKdp1ProtectedEnvelope()
+    {
+        await _db.InitializeAsync();
+        var vaultDir = Path.Combine(_tempRoot, "dpapi_vault");
+        var quarantine = new EncryptedQuarantineService(_db, vaultDir);
+
+        var samplePath = Path.Combine(_tempRoot, "dpapi_test.bin");
+        await File.WriteAllBytesAsync(samplePath, Encoding.UTF8.GetBytes("DPAPI-TEST-PAYLOAD"));
+
+        var det = new DetectionItem { FileName = "dpapi_test.bin", FilePath = samplePath, Sha256 = "1234", ThreatName = "Test", FileSize = 18 };
+        await _db.RecordDetectionAsync(det);
+        await quarantine.QuarantineFileAsync(det);
+
+        var keyBytes = await File.ReadAllBytesAsync(Path.Combine(vaultDir, ".vault.key"));
+        Assert.True(keyBytes.Length > 32);
+        Assert.Equal("KDP1", Encoding.ASCII.GetString(keyBytes, 0, 4));
+    }
+
+    [Fact]
+    public async Task SystemSecurityGuard_EnumeratesLiveWindowsProcessesAndStartupEntries()
+    {
+        var guard = new SystemSecurityGuardService(new AuthenticodeVerifier());
+        var procs = await guard.GetMonitoredProcessesAsync();
+        var startups = await guard.GetStartupEntriesAsync();
+
+        Assert.NotEmpty(procs);
+        Assert.NotNull(startups);
+    }
 }

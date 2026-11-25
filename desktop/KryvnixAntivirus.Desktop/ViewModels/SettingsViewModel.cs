@@ -15,10 +15,15 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IAppStateService _appState;
     private readonly IAuthService _authService;
     private readonly AuthViewModel _authVm;
+    private readonly IShellIntegrationService _shellIntegration;
 
     [ObservableProperty] private bool _isUserLoggedIn;
     [ObservableProperty] private string _accountDisplayName = "Chế độ khách (Chưa đăng nhập)";
     [ObservableProperty] private string _accountDetails = "Đăng ký tài khoản để bảo vệ cài đặt và đồng bộ thiết bị Kryvnix.";
+    [ObservableProperty] private bool _enableAiPeClassifier = true;
+    [ObservableProperty] private bool _enableTamperProtection;
+    [ObservableProperty] private bool _enableContextMenuIntegration;
+    [ObservableProperty] private string _virusTotalApiKey = string.Empty;
 
     [ObservableProperty] private bool _startWithWindows = true;
     [ObservableProperty] private bool _minimizeToTrayOnClose = true;
@@ -48,7 +53,8 @@ public partial class SettingsViewModel : ObservableObject
         IBackendApiClient api,
         IAppStateService appState,
         IAuthService authService,
-        AuthViewModel authVm)
+        AuthViewModel authVm,
+        IShellIntegrationService shellIntegration)
     {
         _db = db;
         _ipc = ipc;
@@ -56,6 +62,7 @@ public partial class SettingsViewModel : ObservableObject
         _appState = appState;
         _authService = authService;
         _authVm = authVm;
+        _shellIntegration = shellIntegration;
         DatabasePath = _db.DatabasePath;
 
         _authService.CurrentUserChanged += (_, _) => Application.Current?.Dispatcher.Invoke(SyncAccountInfo);
@@ -112,6 +119,10 @@ public partial class SettingsViewModel : ObservableObject
         BackendApiBaseUrl = s.BackendApiBaseUrl;
         DeviceId = s.DeviceId;
         SimulateServiceUnavailable = s.SimulateServiceUnavailable;
+        EnableAiPeClassifier = s.EnableAiPeClassifier;
+        EnableTamperProtection = s.EnableTamperProtection;
+        EnableContextMenuIntegration = _shellIntegration.IsContextMenuRegistered();
+        VirusTotalApiKey = s.VirusTotalApiKey;
 
         EngineModeLabel = _appState.EngineStatus.EngineModeLabel;
         PendingSyncCount = await _db.GetPendingSyncCountAsync();
@@ -133,11 +144,34 @@ public partial class SettingsViewModel : ObservableObject
         existing.NamedPipeName = NamedPipeName.Trim();
         existing.BackendApiBaseUrl = BackendApiBaseUrl.Trim();
         existing.SimulateServiceUnavailable = SimulateServiceUnavailable;
+        existing.EnableAiPeClassifier = EnableAiPeClassifier;
+        existing.EnableTamperProtection = EnableTamperProtection;
+        existing.EnableContextMenuIntegration = EnableContextMenuIntegration;
+        existing.VirusTotalApiKey = VirusTotalApiKey.Trim();
+
+        if (EnableContextMenuIntegration)
+        {
+            _shellIntegration.RegisterContextMenu();
+        }
+        else
+        {
+            _shellIntegration.UnregisterContextMenu();
+        }
 
         await _db.SaveSettingsAsync(existing);
         await _appState.RefreshGlobalStateAsync();
         EngineModeLabel = _appState.EngineStatus.EngineModeLabel;
-        StatusMessage = "Đã lưu cấu hình thành công vào SQLite cục bộ.";
+        StatusMessage = "Đã lưu cấu hình thành công (kèm cài đặt Shell Context Menu, AI PE & Tamper Protection).";
+    }
+
+    [RelayCommand]
+    private async Task FlushSyncQueueAsync()
+    {
+        int flushed = await _api.FlushOfflineSyncQueueAsync();
+        PendingSyncCount = await _db.GetPendingSyncCountAsync();
+        StatusMessage = flushed > 0
+            ? $"Đã đồng bộ thành công {flushed} bản ghi lên Backend API."
+            : $"Không thể đồng bộ (còn {PendingSyncCount} mục chờ Backend API trực tuyến).";
     }
 
     [RelayCommand]
