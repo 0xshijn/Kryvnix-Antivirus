@@ -5,6 +5,48 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0,0,4,0">
 
+            <!-- Kryvnix User Account Card -->
+            <Border Style="{StaticResource KryvnixCardStyle}" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="48" Height="48" CornerRadius="14" Background="#143729" BorderBrush="#22C55E" BorderThickness="1" Margin="0,0,14,0" VerticalAlignment="Center">
+                        <Path Data="{StaticResource IconUser}" Fill="#22C55E" Width="22" Height="22" Stretch="Uniform" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding AccountDisplayName}" FontSize="16" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                        <TextBlock Text="{Binding AccountDetails}" Style="{StaticResource SecondaryTextStyle}" Margin="0,3,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                        <Button Content="Đăng ký tài khoản"
+                                Command="{Binding OpenRegisterCommand}"
+                                Style="{StaticResource KryvnixPrimaryButton}"
+                                Margin="0,0,8,0"
+                                Visibility="{Binding IsUserLoggedIn, Converter={StaticResource InverseBoolToVis}}" />
+                        <Button Content="Đăng nhập"
+                                Command="{Binding OpenLoginCommand}"
+                                Style="{StaticResource KryvnixSecondaryButton}"
+                                Visibility="{Binding IsUserLoggedIn, Converter={StaticResource InverseBoolToVis}}" />
+
+                        <Button Content="Đổi mật khẩu"
+                                Command="{Binding OpenChangePasswordCommand}"
+                                Style="{StaticResource KryvnixSecondaryButton}"
+                                Margin="0,0,8,0"
+                                Visibility="{Binding IsUserLoggedIn, Converter={StaticResource BoolToVis}}" />
+                        <Button Content="Đăng xuất"
+                                Command="{Binding LogoutAccountCommand}"
+                                Style="{StaticResource KryvnixDangerButton}"
+                                Visibility="{Binding IsUserLoggedIn, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
             <!-- General & System Tray -->
             <Border Style="{StaticResource KryvnixCardStyle}">
                 <StackPanel>

@@ -1,0 +1,335 @@
+<UserControl x:Class="KryvnixAntivirus.Desktop.Views.AuthDialogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="{Binding IsOpen, Converter={StaticResource BoolToVis}}">
+
+    <Grid Background="#C4060B12">
+        <!-- Centered Modal Card -->
+        <Border Width="470"
+                MaxHeight="740"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Background="#121C29"
+                BorderBrush="#27384D"
+                BorderThickness="1"
+                CornerRadius="18"
+                ClipToBounds="True">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="36" ShadowDepth="10" Opacity="0.65" Color="#000000" />
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Top Emerald Accent Header -->
+                <Border Grid.Row="0" Padding="24,20,20,16" BorderBrush="#1E2C3E" BorderThickness="0,0,0,1">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#10222C" Offset="0" />
+                            <GradientStop Color="#0F2D27" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Shield Badge -->
+                        <Border Width="44" Height="44" CornerRadius="12" Background="#143A2C" BorderBrush="#22C55E" BorderThickness="1" Margin="0,0,14,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource IconShieldCheck}" Fill="#22C55E" Width="22" Height="22" Stretch="Uniform" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ModalTitle}" FontSize="18" FontWeight="Bold" Foreground="#F8FAFC" />
+                            <TextBlock Text="{Binding ModalSubtitle}" FontSize="12" Foreground="#9AB0C7" TextWrapping="Wrap" Margin="0,2,0,0" />
+                        </StackPanel>
+
+                        <Button Grid.Column="2"
+                                Command="{Binding CloseCommand}"
+                                Style="{StaticResource WindowCaptionButton}"
+                                Width="32" Height="32"
+                                VerticalAlignment="Top"
+                                ToolTip="Đóng">
+                            <Path Data="{StaticResource IconWinClose}" Fill="#94A3B8" Width="11" Height="11" Stretch="Uniform" />
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Body Content -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,18,24,22">
+                    <StackPanel>
+
+                        <!-- Register / Login Segmented Switcher (hidden in ChangePassword mode) -->
+                        <Border Background="#0B121C"
+                                BorderBrush="#213043"
+                                BorderThickness="1"
+                                CornerRadius="11"
+                                Padding="4"
+                                Margin="0,0,0,16"
+                                Visibility="{Binding IsChangePasswordMode, Converter={StaticResource InverseBoolToVis}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <RadioButton Grid.Column="0" GroupName="AuthTab" IsChecked="{Binding IsRegisterMode, Mode=OneWay}"
+                                             Command="{Binding SwitchToRegisterCommand}" Cursor="Hand">
+                                    <RadioButton.Template>
+                                        <ControlTemplate TargetType="RadioButton">
+                                            <Border x:Name="Bd" Background="Transparent" CornerRadius="8" Padding="0,8">
+                                                <TextBlock x:Name="Txt" Text="Đăng ký tài khoản" HorizontalAlignment="Center" FontSize="13" FontWeight="SemiBold" Foreground="#94A3B8" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#163E2E" />
+                                                    <Setter TargetName="Txt" Property="Foreground" Value="#4ADE80" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </RadioButton.Template>
+                                </RadioButton>
+
+                                <RadioButton Grid.Column="1" GroupName="AuthTab" IsChecked="{Binding IsLoginMode, Mode=OneWay}"
+                                             Command="{Binding SwitchToLoginCommand}" Cursor="Hand">
+                                    <RadioButton.Template>
+                                        <ControlTemplate TargetType="RadioButton">
+                                            <Border x:Name="Bd" Background="Transparent" CornerRadius="8" Padding="0,8">
+                                                <TextBlock x:Name="Txt" Text="Đăng nhập" HorizontalAlignment="Center" FontSize="13" FontWeight="SemiBold" Foreground="#94A3B8" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#163E2E" />
+                                                    <Setter TargetName="Txt" Property="Foreground" Value="#4ADE80" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </RadioButton.Template>
+                                </RadioButton>
+                            </Grid>
+                        </Border>
+
+                        <!-- Inline Error Alert -->
+                        <Border Background="#33171F" BorderBrush="#7A2836" BorderThickness="1" CornerRadius="10" Padding="12,9" Margin="0,0,0,12"
+                                Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconAlertOctagon}" Fill="#EF4444" Width="16" Height="16" Stretch="Uniform" Margin="0,1,9,0" VerticalAlignment="Top" />
+                                <TextBlock Text="{Binding ErrorMessage}" Foreground="#FCA5A5" FontSize="12.5" TextWrapping="Wrap" Width="375" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Inline Success Alert -->
+                        <Border Background="#133324" BorderBrush="#1F6F49" BorderThickness="1" CornerRadius="10" Padding="12,9" Margin="0,0,0,12"
+                                Visibility="{Binding HasSuccess, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconCheckCircle}" Fill="#22C55E" Width="16" Height="16" Stretch="Uniform" Margin="0,1,9,0" VerticalAlignment="Top" />
+                                <TextBlock Text="{Binding SuccessMessage}" Foreground="#86EFAC" FontSize="12.5" TextWrapping="Wrap" Width="375" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ==================== REGISTER FORM ==================== -->
+                        <StackPanel Visibility="{Binding IsRegisterMode, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Họ và tên" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" Margin="0,0,0,5" />
+                            <TextBox Style="{StaticResource KryvnixTextBox}" Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,11" />
+
+                            <Grid Margin="0,0,0,11">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="1.2*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Tên đăng nhập" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" Margin="0,0,0,5" />
+                                    <TextBox Style="{StaticResource KryvnixTextBox}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Địa chỉ Email" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" Margin="0,0,0,5" />
+                                    <TextBox Style="{StaticResource KryvnixTextBox}" Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,5">
+                                <TextBlock Text="Mật khẩu" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" />
+                                <Button Command="{Binding ToggleShowPasswordCommand}" Style="{StaticResource KryvnixGhostButton}"
+                                        HorizontalAlignment="Right" Padding="4,0" FontSize="11.5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource IconEye}" Fill="#22C55E" Width="13" Height="13" Stretch="Uniform" Margin="0,0,5,0" />
+                                        <TextBlock Text="Hiện / Ẩn mật khẩu" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,7">
+                                <PasswordBox x:Name="RegPasswordBox"
+                                             Style="{StaticResource KryvnixPasswordBox}"
+                                             PasswordChanged="RegPasswordBox_PasswordChanged"
+                                             Visibility="{Binding ShowPassword, Converter={StaticResource InverseBoolToVis}}" />
+                                <TextBox Style="{StaticResource KryvnixTextBox}"
+                                         Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+
+                            <!-- 4-Segment Live Password Strength Bar -->
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="5" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="5" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="5" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Height="4" CornerRadius="2" Background="#1F2D3E">
+                                    <Border CornerRadius="2" Background="{Binding PasswordStrengthColorHex, Converter={StaticResource HexToBrush}}" Visibility="{Binding StrengthBar1Active, Converter={StaticResource BoolToVis}}" />
+                                </Border>
+                                <Border Grid.Column="2" Height="4" CornerRadius="2" Background="#1F2D3E">
+                                    <Border CornerRadius="2" Background="{Binding PasswordStrengthColorHex, Converter={StaticResource HexToBrush}}" Visibility="{Binding StrengthBar2Active, Converter={StaticResource BoolToVis}}" />
+                                </Border>
+                                <Border Grid.Column="4" Height="4" CornerRadius="2" Background="#1F2D3E">
+                                    <Border CornerRadius="2" Background="{Binding PasswordStrengthColorHex, Converter={StaticResource HexToBrush}}" Visibility="{Binding StrengthBar3Active, Converter={StaticResource BoolToVis}}" />
+                                </Border>
+                                <Border Grid.Column="6" Height="4" CornerRadius="2" Background="#1F2D3E">
+                                    <Border CornerRadius="2" Background="{Binding PasswordStrengthColorHex, Converter={StaticResource HexToBrush}}" Visibility="{Binding StrengthBar4Active, Converter={StaticResource BoolToVis}}" />
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="{Binding PasswordStrengthLabel}"
+                                       FontSize="11.5"
+                                       Foreground="{Binding PasswordStrengthColorHex, Converter={StaticResource HexToBrush}}"
+                                       Margin="0,0,0,11" />
+
+                            <TextBlock Text="Xác nhận mật khẩu" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" Margin="0,0,0,5" />
+                            <Grid Margin="0,0,0,12">
+                                <PasswordBox x:Name="RegConfirmPasswordBox"
+                                             Style="{StaticResource KryvnixPasswordBox}"
+                                             PasswordChanged="RegConfirmPasswordBox_PasswordChanged"
+                                             Visibility="{Binding ShowPassword, Converter={StaticResource InverseBoolToVis}}" />
+                                <TextBox Style="{StaticResource KryvnixTextBox}"
+                                         Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,16">
+                                <TextBlock Text="Ghi nhớ đăng nhập trên thiết bị này" FontSize="12.5" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding RememberSession, Mode=TwoWay}" HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <Button Content="Đăng ký tài khoản"
+                                    Command="{Binding SubmitRegisterCommand}"
+                                    Style="{StaticResource KryvnixPrimaryButton}"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                                    Height="42" />
+                        </StackPanel>
+
+                        <!-- ==================== LOGIN FORM ==================== -->
+                        <StackPanel Visibility="{Binding IsLoginMode, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Tên đăng nhập hoặc Email" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" Margin="0,0,0,5" />
+                            <TextBox Style="{StaticResource KryvnixTextBox}" Text="{Binding LoginIdentifier, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+
+                            <Grid Margin="0,0,0,5">
+                                <TextBlock Text="Mật khẩu" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" />
+                                <Button Command="{Binding ToggleShowPasswordCommand}" Style="{StaticResource KryvnixGhostButton}"
+                                        HorizontalAlignment="Right" Padding="4,0" FontSize="11.5">
+                                    <TextBlock Text="Hiện / Ẩn mật khẩu" />
+                                </Button>
+                            </Grid>
+                            <Grid Margin="0,0,0,14">
+                                <PasswordBox x:Name="LoginPasswordBox"
+                                             Style="{StaticResource KryvnixPasswordBox}"
+                                             PasswordChanged="LoginPasswordBox_PasswordChanged"
+                                             Visibility="{Binding ShowPassword, Converter={StaticResource InverseBoolToVis}}" />
+                                <TextBox Style="{StaticResource KryvnixTextBox}"
+                                         Text="{Binding LoginPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,16">
+                                <TextBlock Text="Ghi nhớ phiên đăng nhập" FontSize="12.5" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding RememberSession, Mode=TwoWay}" HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <Button Content="Đăng nhập"
+                                    Command="{Binding SubmitLoginCommand}"
+                                    Style="{StaticResource KryvnixPrimaryButton}"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                                    Height="42" />
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,14,0,0">
+                                <TextBlock Text="Chưa có tài khoản Kryvnix? " FontSize="12.5" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                <Button Content="Đăng ký ngay" Command="{Binding SwitchToRegisterCommand}" Style="{StaticResource KryvnixGhostButton}" FontSize="12.5" Padding="4,2" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- ==================== CHANGE PASSWORD FORM ==================== -->
+                        <StackPanel Visibility="{Binding IsChangePasswordMode, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Mật khẩu hiện tại" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" Margin="0,0,0,5" />
+                            <Grid Margin="0,0,0,12">
+                                <PasswordBox x:Name="CurrentPasswordBox"
+                                             Style="{StaticResource KryvnixPasswordBox}"
+                                             PasswordChanged="CurrentPasswordBox_PasswordChanged"
+                                             Visibility="{Binding ShowPassword, Converter={StaticResource InverseBoolToVis}}" />
+                                <TextBox Style="{StaticResource KryvnixTextBox}"
+                                         Text="{Binding CurrentPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,5">
+                                <TextBlock Text="Mật khẩu mới" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" />
+                                <Button Command="{Binding ToggleShowPasswordCommand}" Style="{StaticResource KryvnixGhostButton}"
+                                        HorizontalAlignment="Right" Padding="4,0" FontSize="11.5">
+                                    <TextBlock Text="Hiện / Ẩn mật khẩu" />
+                                </Button>
+                            </Grid>
+                            <Grid Margin="0,0,0,7">
+                                <PasswordBox x:Name="NewPasswordBox"
+                                             Style="{StaticResource KryvnixPasswordBox}"
+                                             PasswordChanged="NewPasswordBox_PasswordChanged"
+                                             Visibility="{Binding ShowPassword, Converter={StaticResource InverseBoolToVis}}" />
+                                <TextBox Style="{StaticResource KryvnixTextBox}"
+                                         Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+
+                            <TextBlock Text="{Binding PasswordStrengthLabel}"
+                                       FontSize="11.5"
+                                       Foreground="{Binding PasswordStrengthColorHex, Converter={StaticResource HexToBrush}}"
+                                       Margin="0,0,0,11" />
+
+                            <TextBlock Text="Xác nhận mật khẩu mới" FontSize="12.5" Foreground="#CBD5E1" FontWeight="Medium" Margin="0,0,0,5" />
+                            <Grid Margin="0,0,0,16">
+                                <PasswordBox x:Name="ConfirmNewPasswordBox"
+                                             Style="{StaticResource KryvnixPasswordBox}"
+                                             PasswordChanged="ConfirmNewPasswordBox_PasswordChanged"
+                                             Visibility="{Binding ShowPassword, Converter={StaticResource InverseBoolToVis}}" />
+                                <TextBox Style="{StaticResource KryvnixTextBox}"
+                                         Text="{Binding ConfirmNewPassword, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="{Binding ShowPassword, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+
+                            <Button Content="Cập nhật mật khẩu"
+                                    Command="{Binding SubmitChangePasswordCommand}"
+                                    Style="{StaticResource KryvnixPrimaryButton}"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                                    Height="42" />
+                        </StackPanel>
+
+                        <TextBlock Text="Mật khẩu được băm cục bộ bằng PBKDF2-SHA256 (120.000 vòng lặp + muối ngẫu nhiên)."
+                                   FontSize="11"
+                                   Foreground="#64748B"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Margin="0,14,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

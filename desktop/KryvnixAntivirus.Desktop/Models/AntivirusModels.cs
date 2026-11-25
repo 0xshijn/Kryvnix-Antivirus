@@ -248,6 +248,45 @@ public sealed class SignatureUpdateResult
     public string Message { get; set; } = string.Empty;
 }
 
+public sealed class UserAccount
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string FullName { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
+    public string Role { get; set; } = "Standard";
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime? LastLoginAt { get; set; }
+
+    public string Initials
+    {
+        get
+        {
+            var parts = FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 2)
+            {
+                return $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[^1][0])}";
+            }
+            if (!string.IsNullOrWhiteSpace(FullName))
+            {
+                return FullName[..Math.Min(2, FullName.Length)].ToUpperInvariant();
+            }
+            return string.IsNullOrWhiteSpace(Username) ? "ND" : Username[..Math.Min(2, Username.Length)].ToUpperInvariant();
+        }
+    }
+}
+
+public sealed class AuthResult
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public UserAccount? User { get; set; }
+
+    public static AuthResult Ok(UserAccount user, string message) => new() { Success = true, User = user, Message = message };
+    public static AuthResult Fail(string message) => new() { Success = false, Message = message };
+}
+
 public static class ThreatCategoryMetadata
 {
     public static string GetDisplayName(ThreatCategory category) => category switch

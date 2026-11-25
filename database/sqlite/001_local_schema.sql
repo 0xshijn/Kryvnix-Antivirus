@@ -98,6 +98,17 @@ CREATE TABLE IF NOT EXISTS sync_queue (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS local_users (
+    id TEXT PRIMARY KEY,
+    full_name TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'Standard',
+    created_at TEXT NOT NULL,
+    last_login_at TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_local_detections_time ON detections(detected_at DESC);
 CREATE INDEX IF NOT EXISTS idx_local_detections_cat ON detections(category);
 CREATE INDEX IF NOT EXISTS idx_local_activity_time ON activity_events(created_at DESC);

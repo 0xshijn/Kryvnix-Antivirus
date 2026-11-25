@@ -36,6 +36,14 @@ public interface ILocalDatabaseService
     Task SaveRealtimeStateAsync(RealtimeProtectionState state, CancellationToken ct = default);
     Task EnqueueSyncPayloadAsync(string endpoint, string payloadJson, CancellationToken ct = default);
     Task<int> GetPendingSyncCountAsync(CancellationToken ct = default);
+    Task<UserAccount?> GetUserByUsernameOrEmailAsync(string identifier, CancellationToken ct = default);
+    Task<UserAccount?> GetUserByIdAsync(string userId, CancellationToken ct = default);
+    Task<bool> UsernameOrEmailExistsAsync(string username, string email, CancellationToken ct = default);
+    Task CreateUserAsync(UserAccount user, CancellationToken ct = default);
+    Task UpdateUserLastLoginAsync(string userId, DateTime loginTime, CancellationToken ct = default);
+    Task UpdateUserPasswordHashAsync(string userId, string newPasswordHash, CancellationToken ct = default);
+    Task<string?> GetActiveSessionUserIdAsync(CancellationToken ct = default);
+    Task SetActiveSessionUserIdAsync(string? userId, CancellationToken ct = default);
     Task ResetSampleDataAsync(CancellationToken ct = default);
 }
 
@@ -187,6 +195,17 @@ public sealed class LocalDatabaseService : ILocalDatabaseService
                     payload_json TEXT NOT NULL,
                     retry_count INTEGER NOT NULL DEFAULT 0,
                     created_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS local_users (
+                    id TEXT PRIMARY KEY,
+                    full_name TEXT NOT NULL,
+                    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                    password_hash TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'Standard',
+                    created_at TEXT NOT NULL,
+                    last_login_at TEXT
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_local_detections_time ON detections(detected_at DESC);
@@ -1082,6 +1101,127 @@ public sealed class LocalDatabaseService : ILocalDatabaseService
         cmd.CommandText = "SELECT COUNT(*) FROM sync_queue;";
         return Convert.ToInt32(await cmd.ExecuteScalarAsync(ct));
     }
+
+    public async Task<UserAccount?> GetUserByUsernameOrEmailAsync(string identifier, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT id, full_name, username, email, password_hash, role, created_at, last_login_at
+            FROM local_users
+            WHERE LOWER(username) = LOWER($ident) OR LOWER(email) = LOWER($ident)
+            LIMIT 1;
+            """;
+        cmd.Parameters.AddWithValue("$ident", identifier.Trim());
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return null;
+        return ReadUserAccount(reader);
+    }
+
+    public async Task<UserAccount?> GetUserByIdAsync(string userId, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT id, full_name, username, email, password_hash, role, created_at, last_login_at
+            FROM local_users
+            WHERE id = $id
+            LIMIT 1;
+            """;
+        cmd.Parameters.AddWithValue("$id", userId);
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return null;
+        return ReadUserAccount(reader);
+    }
+
+    public async Task<bool> UsernameOrEmailExistsAsync(string username, string email, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT COUNT(*) FROM local_users
+            WHERE LOWER(username) = LOWER($u) OR LOWER(email) = LOWER($e);
+            """;
+        cmd.Parameters.AddWithValue("$u", username.Trim());
+        cmd.Parameters.AddWithValue("$e", email.Trim());
+        return Convert.ToInt32(await cmd.ExecuteScalarAsync(ct)) > 0;
+    }
+
+    public async Task CreateUserAsync(UserAccount user, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO local_users (id, full_name, username, email, password_hash, role, created_at, last_login_at)
+            VALUES ($id, $name, $uname, $email, $hash, $role, $created, $last);
+            """;
+        cmd.Parameters.AddWithValue("$id", user.Id);
+        cmd.Parameters.AddWithValue("$name", user.FullName);
+        cmd.Parameters.AddWithValue("$uname", user.Username);
+        cmd.Parameters.AddWithValue("$email", user.Email);
+        cmd.Parameters.AddWithValue("$hash", user.PasswordHash);
+        cmd.Parameters.AddWithValue("$role", user.Role);
+        cmd.Parameters.AddWithValue("$created", user.CreatedAt.ToString("O"));
+        cmd.Parameters.AddWithValue("$last", (object?)user.LastLoginAt?.ToString("O") ?? DBNull.Value);
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    public async Task UpdateUserLastLoginAsync(string userId, DateTime loginTime, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "UPDATE local_users SET last_login_at = $dt WHERE id = $id;";
+        cmd.Parameters.AddWithValue("$dt", loginTime.ToString("O"));
+        cmd.Parameters.AddWithValue("$id", userId);
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    public async Task UpdateUserPasswordHashAsync(string userId, string newPasswordHash, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "UPDATE local_users SET password_hash = $hash WHERE id = $id;";
+        cmd.Parameters.AddWithValue("$hash", newPasswordHash);
+        cmd.Parameters.AddWithValue("$id", userId);
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    public async Task<string?> GetActiveSessionUserIdAsync(CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        var val = await GetSettingValueAsync(conn, "active_session_user_id", ct);
+        return string.IsNullOrWhiteSpace(val) ? null : val;
+    }
+
+    public async Task SetActiveSessionUserIdAsync(string? userId, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
+        await using var conn = await OpenConnectionAsync(ct);
+        await using var tx = (SqliteTransaction)await conn.BeginTransactionAsync(ct);
+        await UpsertSettingAsync(conn, tx, "active_session_user_id", userId ?? string.Empty, ct);
+        await tx.CommitAsync(ct);
+    }
+
+    private static UserAccount ReadUserAccount(SqliteDataReader reader) => new()
+    {
+        Id = reader.GetString(0),
+        FullName = reader.GetString(1),
+        Username = reader.GetString(2),
+        Email = reader.GetString(3),
+        PasswordHash = reader.GetString(4),
+        Role = reader.GetString(5),
+        CreatedAt = DateTime.Parse(reader.GetString(6), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
+        LastLoginAt = reader.IsDBNull(7) ? null : DateTime.Parse(reader.GetString(7), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
+    };
 
     private static async Task<string?> GetSettingValueAsync(SqliteConnection conn, string key, CancellationToken ct)
     {

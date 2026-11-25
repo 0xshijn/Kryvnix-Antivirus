@@ -502,7 +502,15 @@
                                     <Border x:Name="Bd" Background="Transparent" CornerRadius="10" Padding="6,4">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Border Width="34" Height="34" CornerRadius="17" Background="#233144" BorderBrush="#33465E" BorderThickness="1">
-                                                <Path Data="{StaticResource IconUser}" Fill="#CBD5E1" Width="16" Height="16" Stretch="Uniform" />
+                                                <Grid>
+                                                    <Path Data="{StaticResource IconUser}" Fill="#CBD5E1" Width="16" Height="16" Stretch="Uniform"
+                                                          Visibility="{Binding IsAuthenticated, Converter={StaticResource InverseBoolToVis}}" />
+                                                    <Border CornerRadius="17" Background="#143D2C" BorderBrush="#22C55E" BorderThickness="1"
+                                                            Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="{Binding UserInitials}" FontSize="12" FontWeight="Bold" Foreground="#4ADE80"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                </Grid>
                                             </Border>
                                             <StackPanel Margin="10,0,8,0" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding UserName}" FontSize="13" FontWeight="SemiBold" Foreground="#F1F5F9" />
@@ -592,19 +600,56 @@
                 <!-- User Account Menu Popover -->
                 <Popup PlacementTarget="{Binding ElementName=UserMenuBtn}"
                        Placement="Bottom"
-                       HorizontalOffset="-90"
+                       HorizontalOffset="-105"
                        VerticalOffset="8"
                        IsOpen="{Binding IsAccountMenuOpen, Mode=TwoWay}"
                        StaysOpen="False"
                        AllowsTransparency="True">
-                    <Border Width="260" Background="#131E2C" BorderBrush="#293A50" BorderThickness="1" CornerRadius="14" Padding="14">
+                    <Border Width="280" Background="#131E2C" BorderBrush="#293A50" BorderThickness="1" CornerRadius="14" Padding="14">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="22" ShadowDepth="6" Opacity="0.55" Color="#000000" />
                         </Border.Effect>
                         <StackPanel>
-                            <TextBlock Text="Kryvnix Endpoint Agent" FontSize="13.5" FontWeight="SemiBold" Foreground="#F8FAFC" />
-                            <TextBlock Text="{Binding DeviceId, StringFormat='Mã thiết bị: {0}'}" FontSize="11.5" Foreground="#94A3B8" Margin="0,4,0,0" />
-                            <TextBlock Text="{Binding EngineModeLabel, StringFormat='Engine: {0}'}" FontSize="11.5" Foreground="#22C55E" Margin="0,2,0,10" TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="38" Height="38" CornerRadius="19" Background="#163A2C" BorderBrush="#22C55E" BorderThickness="1" Margin="0,0,10,0">
+                                    <TextBlock Text="{Binding UserInitials}" FontSize="13" FontWeight="Bold" Foreground="#4ADE80"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding UserName}" FontSize="13.5" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                                    <TextBlock Text="{Binding UserEmail}" FontSize="11.5" Foreground="#94A3B8" TextTrimming="CharacterEllipsis" MaxWidth="195" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <TextBlock Text="{Binding DeviceId, StringFormat='Mã thiết bị: {0}'}" FontSize="11" Foreground="#64748B" />
+                            <TextBlock Text="{Binding EngineModeLabel, StringFormat='Engine: {0}'}" FontSize="11" Foreground="#22C55E" Margin="0,2,0,10" TextWrapping="Wrap" />
+
+                            <!-- Guest actions: Register & Login -->
+                            <StackPanel Visibility="{Binding IsAuthenticated, Converter={StaticResource InverseBoolToVis}}">
+                                <Button Content="Đăng ký tài khoản mới"
+                                        Command="{Binding OpenRegisterDialogCommand}"
+                                        Style="{StaticResource KryvnixPrimaryButton}"
+                                        Margin="0,0,0,8" />
+                                <Button Content="Đăng nhập tài khoản"
+                                        Command="{Binding OpenLoginDialogCommand}"
+                                        Style="{StaticResource KryvnixSecondaryButton}"
+                                        Margin="0,0,0,10" />
+                            </StackPanel>
+
+                            <!-- Authenticated actions: Change Password & Logout -->
+                            <StackPanel Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVis}}">
+                                <Button Content="Đổi mật khẩu"
+                                        Command="{Binding OpenChangePasswordDialogCommand}"
+                                        Style="{StaticResource KryvnixSecondaryButton}"
+                                        HorizontalContentAlignment="Left"
+                                        Margin="0,0,0,8" />
+                                <Button Content="Đăng xuất tài khoản"
+                                        Command="{Binding LogoutCommand}"
+                                        Style="{StaticResource KryvnixSecondaryButton}"
+                                        HorizontalContentAlignment="Left"
+                                        Margin="0,0,0,10" />
+                            </StackPanel>
+
                             <Border Height="1" Background="#1E2B3C" Margin="0,0,0,10" />
                             <Button Content="Mở Cài đặt hệ thống"
                                     Command="{Binding NavigateCommand}"
@@ -625,6 +670,11 @@
                     </Border>
                 </Popup>
             </Grid>
+
+            <!-- Full-Window Authentication Modal Overlay (Register / Login / Change Password) -->
+            <views:AuthDialogView Grid.ColumnSpan="2"
+                                  DataContext="{Binding AuthVm}"
+                                  Panel.ZIndex="100" />
         </Grid>
     </Border>
 </Window>

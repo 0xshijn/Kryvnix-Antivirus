@@ -14,6 +14,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IAppStateService _appState;
     private readonly ILocalDatabaseService _db;
     private readonly IRealtimeProtectionService _realtime;
+    private readonly IAuthService _authService;
 
     public DashboardViewModel DashboardVm { get; }
     public ScanViewModel ScanVm { get; }
@@ -22,6 +23,7 @@ public partial class MainViewModel : ObservableObject
     public HistoryViewModel HistoryVm { get; }
     public UpdatesViewModel UpdatesVm { get; }
     public SettingsViewModel SettingsVm { get; }
+    public AuthViewModel AuthVm { get; }
 
     [ObservableProperty] private NavigationPage _currentPage = NavigationPage.Dashboard;
     [ObservableProperty] private object? _currentViewModel;
@@ -44,6 +46,10 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _userName = "Người dùng";
     [ObservableProperty] private string _userRole = "Standard";
+    [ObservableProperty] private string _userEmail = "Chưa đăng nhập tài khoản";
+    [ObservableProperty] private string _userHandle = string.Empty;
+    [ObservableProperty] private string _userInitials = "ND";
+    [ObservableProperty] private bool _isAuthenticated;
     [ObservableProperty] private string _deviceId = string.Empty;
     [ObservableProperty] private string _engineModeLabel = string.Empty;
 
@@ -61,17 +67,20 @@ public partial class MainViewModel : ObservableObject
         IAppStateService appState,
         ILocalDatabaseService db,
         IRealtimeProtectionService realtime,
+        IAuthService authService,
         DashboardViewModel dashboardVm,
         ScanViewModel scanVm,
         RealtimeProtectionViewModel realtimeVm,
         QuarantineViewModel quarantineVm,
         HistoryViewModel historyVm,
         UpdatesViewModel updatesVm,
-        SettingsViewModel settingsVm)
+        SettingsViewModel settingsVm,
+        AuthViewModel authVm)
     {
         _appState = appState;
         _db = db;
         _realtime = realtime;
+        _authService = authService;
 
         DashboardVm = dashboardVm;
         ScanVm = scanVm;
@@ -80,7 +89,9 @@ public partial class MainViewModel : ObservableObject
         HistoryVm = historyVm;
         UpdatesVm = updatesVm;
         SettingsVm = settingsVm;
+        AuthVm = authVm;
 
+        _authService.CurrentUserChanged += (_, user) => Application.Current?.Dispatcher.Invoke(() => SyncUserProfile(user));
         _appState.StateRefreshed += (_, _) => Application.Current?.Dispatcher.InvokeAsync(SyncShellStateAsync);
         _appState.NavigationRequested += (_, page) => Application.Current?.Dispatcher.Invoke(() => Navigate(page));
         _appState.QuickScanTriggerRequested += (_, mode) => Application.Current?.Dispatcher.InvokeAsync(async () =>
@@ -92,9 +103,60 @@ public partial class MainViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
+        SyncUserProfile(_authService.CurrentUser);
         Navigate(NavigationPage.Dashboard);
         await SyncShellStateAsync();
         await DashboardVm.LoadAsync();
+    }
+
+    private void SyncUserProfile(UserAccount? user)
+    {
+        if (user is null)
+        {
+            IsAuthenticated = false;
+            UserName = "Người dùng";
+            UserRole = "Standard";
+            UserEmail = "Chưa đăng nhập tài khoản";
+            UserHandle = string.Empty;
+            UserInitials = "ND";
+            return;
+        }
+
+        IsAuthenticated = true;
+        UserName = user.FullName;
+        UserRole = user.Role;
+        UserEmail = user.Email;
+        UserHandle = $"@{user.Username}";
+        UserInitials = user.Initials;
+    }
+
+    [RelayCommand]
+    private void OpenRegisterDialog()
+    {
+        IsAccountMenuOpen = false;
+        AuthVm.Open(AuthDialogMode.Register);
+    }
+
+    [RelayCommand]
+    private void OpenLoginDialog()
+    {
+        IsAccountMenuOpen = false;
+        AuthVm.Open(AuthDialogMode.Login);
+    }
+
+    [RelayCommand]
+    private void OpenChangePasswordDialog()
+    {
+        IsAccountMenuOpen = false;
+        AuthVm.Open(AuthDialogMode.ChangePassword);
+    }
+
+    [RelayCommand]
+    private async Task LogoutAsync()
+    {
+        IsAccountMenuOpen = false;
+        await _authService.LogoutAsync();
+        await _appState.RefreshGlobalStateAsync();
     }
 
     partial void OnCurrentPageChanged(NavigationPage value)

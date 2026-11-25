@@ -13,6 +13,12 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IEngineIpcClient _ipc;
     private readonly IBackendApiClient _api;
     private readonly IAppStateService _appState;
+    private readonly IAuthService _authService;
+    private readonly AuthViewModel _authVm;
+
+    [ObservableProperty] private bool _isUserLoggedIn;
+    [ObservableProperty] private string _accountDisplayName = "Chế độ khách (Chưa đăng nhập)";
+    [ObservableProperty] private string _accountDetails = "Đăng ký tài khoản để bảo vệ cài đặt và đồng bộ thiết bị Kryvnix.";
 
     [ObservableProperty] private bool _startWithWindows = true;
     [ObservableProperty] private bool _minimizeToTrayOnClose = true;
@@ -40,17 +46,58 @@ public partial class SettingsViewModel : ObservableObject
         ILocalDatabaseService db,
         IEngineIpcClient ipc,
         IBackendApiClient api,
-        IAppStateService appState)
+        IAppStateService appState,
+        IAuthService authService,
+        AuthViewModel authVm)
     {
         _db = db;
         _ipc = ipc;
         _api = api;
         _appState = appState;
+        _authService = authService;
+        _authVm = authVm;
         DatabasePath = _db.DatabasePath;
+
+        _authService.CurrentUserChanged += (_, _) => Application.Current?.Dispatcher.Invoke(SyncAccountInfo);
+    }
+
+    private void SyncAccountInfo()
+    {
+        var user = _authService.CurrentUser;
+        if (user is null)
+        {
+            IsUserLoggedIn = false;
+            AccountDisplayName = "Chế độ khách (Chưa đăng nhập)";
+            AccountDetails = "Đăng ký tài khoản mới hoặc đăng nhập để quản lý bảo mật cá nhân.";
+        }
+        else
+        {
+            IsUserLoggedIn = true;
+            AccountDisplayName = $"{user.FullName} (@{user.Username})";
+            AccountDetails = $"{user.Email}  •  Gói: {user.Role}  •  Mật khẩu bảo vệ bằng PBKDF2-SHA256";
+        }
+    }
+
+    [RelayCommand]
+    private void OpenRegister() => _authVm.Open(AuthDialogMode.Register);
+
+    [RelayCommand]
+    private void OpenLogin() => _authVm.Open(AuthDialogMode.Login);
+
+    [RelayCommand]
+    private void OpenChangePassword() => _authVm.Open(AuthDialogMode.ChangePassword);
+
+    [RelayCommand]
+    private async Task LogoutAccountAsync()
+    {
+        await _authService.LogoutAsync();
+        await _appState.RefreshGlobalStateAsync();
+        StatusMessage = "Đã đăng xuất tài khoản khỏi thiết bị.";
     }
 
     public async Task LoadAsync()
     {
+        SyncAccountInfo();
         var s = await _db.LoadSettingsAsync();
         StartWithWindows = s.StartWithWindows;
         MinimizeToTrayOnClose = s.MinimizeToTrayOnClose;

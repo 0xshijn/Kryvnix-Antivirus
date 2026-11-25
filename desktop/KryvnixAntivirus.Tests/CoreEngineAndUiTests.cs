@@ -208,4 +208,80 @@ public sealed class CoreEngineAndUiTests : IDisposable
         Assert.Equal(90, trojan.Count);
         Assert.Equal(36.6, trojan.Percentage);
     }
+
+    [Fact]
+    public async Task Auth_RegisterAndLoginByUsernameOrEmail_HashesWithPbkdf2()
+    {
+        await _db.InitializeAsync();
+        var auth = new AuthService(_db);
+
+        var reg = await auth.RegisterAsync("Nguyễn Minh Khôi", "minhkhoi", "khoi@kryvnix.io", "Kryvnix@2026", "Kryvnix@2026");
+
+        Assert.True(reg.Success);
+        Assert.NotNull(reg.User);
+        Assert.True(auth.IsAuthenticated);
+        Assert.StartsWith("PBKDF2-SHA256$120000$", reg.User!.PasswordHash);
+        Assert.DoesNotContain("Kryvnix@2026", reg.User.PasswordHash);
+
+        await auth.LogoutAsync();
+        Assert.False(auth.IsAuthenticated);
+
+        // Login via username
+        var loginUser = await auth.LoginAsync("minhkhoi", "Kryvnix@2026");
+        Assert.True(loginUser.Success);
+
+        // Login via email (case-insensitive)
+        var loginEmail = await auth.LoginAsync("KHOI@KRYVNIX.IO", "Kryvnix@2026");
+        Assert.True(loginEmail.Success);
+
+        // Wrong password fails
+        var wrong = await auth.LoginAsync("minhkhoi", "WrongPass999");
+        Assert.False(wrong.Success);
+    }
+
+    [Fact]
+    public async Task Auth_RejectsDuplicateAccountsAndWeakPasswords()
+    {
+        await _db.InitializeAsync();
+        var auth = new AuthService(_db);
+
+        var weak = await auth.RegisterAsync("Test User", "user1", "u1@example.com", "12345", "12345");
+        Assert.False(weak.Success);
+
+        var mismatch = await auth.RegisterAsync("Test User", "user1", "u1@example.com", "StrongPass1", "StrongPass2");
+        Assert.False(mismatch.Success);
+
+        var ok = await auth.RegisterAsync("Test User", "user1", "u1@example.com", "StrongPass1", "StrongPass1");
+        Assert.True(ok.Success);
+
+        var dupUser = await auth.RegisterAsync("Other User", "USER1", "u2@example.com", "StrongPass1", "StrongPass1");
+        Assert.False(dupUser.Success);
+
+        var dupEmail = await auth.RegisterAsync("Other User", "user2", "U1@example.com", "StrongPass1", "StrongPass1");
+        Assert.False(dupEmail.Success);
+    }
+
+    [Fact]
+    public async Task Auth_SessionRestoreAndChangePassword_WorkEndToEnd()
+    {
+        await _db.InitializeAsync();
+        var auth1 = new AuthService(_db);
+
+        var reg = await auth1.RegisterAsync("Trần An", "tranan", "an@kryvnix.io", "SecurePass123", "SecurePass123", rememberSession: true);
+        Assert.True(reg.Success);
+
+        // Simulate app restart with a fresh AuthService instance
+        var auth2 = new AuthService(_db);
+        await auth2.InitializeAsync();
+        Assert.True(auth2.IsAuthenticated);
+        Assert.Equal("tranan", auth2.CurrentUser!.Username);
+
+        // Change password
+        var changed = await auth2.ChangePasswordAsync("SecurePass123", "NewStrongPass456!", "NewStrongPass456!");
+        Assert.True(changed.Success);
+
+        await auth2.LogoutAsync();
+        Assert.False((await auth2.LoginAsync("tranan", "SecurePass123")).Success);
+        Assert.True((await auth2.LoginAsync("tranan", "NewStrongPass456!")).Success);
+    }
 }

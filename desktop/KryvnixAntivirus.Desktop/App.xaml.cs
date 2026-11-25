@@ -25,6 +25,9 @@ public partial class App : Application
         var db = _serviceProvider.GetRequiredService<ILocalDatabaseService>();
         await db.InitializeAsync();
 
+        var auth = _serviceProvider.GetRequiredService<IAuthService>();
+        await auth.InitializeAsync();
+
         var realtime = _serviceProvider.GetRequiredService<IRealtimeProtectionService>();
         await realtime.InitializeAsync();
 
@@ -70,6 +73,11 @@ public partial class App : Application
 
         _mainWindow.Show();
 
+        if (e.Args.Contains("--open-register", StringComparer.OrdinalIgnoreCase))
+        {
+            mainVm.AuthVm.Open(AuthDialogMode.Register);
+        }
+
         // Fire non-blocking background heartbeat to central backend
         _ = Task.Run(async () =>
         {
@@ -89,10 +97,12 @@ public partial class App : Application
         services.AddSingleton<IRealtimeProtectionService, RealtimeProtectionService>();
         services.AddSingleton<ISignatureUpdateService, SignatureUpdateService>();
         services.AddSingleton<ISystemTrayService, SystemTrayService>();
+        services.AddSingleton<IAuthService, AuthService>();
         services.AddSingleton<IAppStateService, AppStateService>();
         services.AddHttpClient<IBackendApiClient, BackendApiClient>();
 
         // ViewModels
+        services.AddSingleton<AuthViewModel>();
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<ScanViewModel>();
         services.AddSingleton<RealtimeProtectionViewModel>();
