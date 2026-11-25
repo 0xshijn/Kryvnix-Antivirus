@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kryvnix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kryvnix_antivirus
+      POSTGRES_USER: kryvnix
+      POSTGRES_PASSWORD: kryvnix_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - kryvnix_pg_data:/var/lib/postgresql/data
+      - ./database/postgres/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kryvnix -d kryvnix_antivirus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:4
+    container_name: kryvnix-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  kryvnix_pg_data:

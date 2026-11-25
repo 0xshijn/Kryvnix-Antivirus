@@ -1,0 +1,652 @@
+<UserControl x:Class="KryvnixAntivirus.Desktop.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0,0,4,0">
+
+            <!-- ==================== 1. SECURITY STATUS HERO CARD ==================== -->
+            <Border Height="164"
+                    CornerRadius="16"
+                    BorderBrush="{Binding HeroBorderHex, Converter={StaticResource HexToBrush}}"
+                    BorderThickness="1"
+                    ClipToBounds="True">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#0D1C2B" Offset="0.0" />
+                        <GradientStop Color="#0C2A27" Offset="0.52" />
+                        <GradientStop Color="#103A2D" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid>
+                    <!-- Reactive state tint overlay for Warning / Danger / Disabled / Unavailable states -->
+                    <Border Opacity="0.92" CornerRadius="15">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0.1" EndPoint="1,0.9">
+                                <GradientStop Color="{Binding HeroBgStartHex, Converter={StaticResource HexToColor}}" Offset="0.0" />
+                                <GradientStop Color="{Binding HeroBgMidHex, Converter={StaticResource HexToColor}}" Offset="0.55" />
+                                <GradientStop Color="{Binding HeroBgEndHex, Converter={StaticResource HexToColor}}" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- Decorative Curved Abstract Waves & Ambient Glow -->
+                    <Grid IsHitTestVisible="False" ClipToBounds="True">
+                        <!-- Ambient radial glow behind shield -->
+                        <Ellipse Width="290" Height="230" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-20,10,0,0" Opacity="0.34">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="{Binding HeroAccentHex, Converter={StaticResource HexToColor}}" Offset="0.0" />
+                                    <GradientStop Color="Transparent" Offset="1.0" />
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <!-- Ambient radial glow on right behind Windows emblem -->
+                        <Ellipse Width="340" Height="220" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,20,-40,0" Opacity="0.22">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="{Binding HeroAccentHex, Converter={StaticResource HexToColor}}" Offset="0.0" />
+                                    <GradientStop Color="Transparent" Offset="1.0" />
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <!-- Sweeping luminous curved waves -->
+                        <Viewbox Stretch="Fill" VerticalAlignment="Bottom" Height="155" Opacity="0.55">
+                            <Canvas Width="1160" Height="155">
+                                <Path Data="M -10,130 C 160,150 380,155 580,95 C 760,40 940,18 1170,58 L 1170,160 L -10,160 Z" Opacity="0.22">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="Transparent" Offset="0" />
+                                            <GradientStop Color="{Binding HeroAccentHex, Converter={StaticResource HexToColor}}" Offset="0.62" />
+                                            <GradientStop Color="#14B8A6" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                </Path>
+                                <Path StrokeThickness="2.8" Data="M 480,158 C 660,122 800,45 1170,22">
+                                    <Path.Stroke>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="Transparent" Offset="0" />
+                                            <GradientStop Color="{Binding HeroAccentHex, Converter={StaticResource HexToColor}}" Offset="0.45" />
+                                            <GradientStop Color="#5EEAD4" Offset="0.82" />
+                                            <GradientStop Color="Transparent" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Path.Stroke>
+                                </Path>
+                                <Path StrokeThickness="1.6" Opacity="0.55" Data="M 540,160 C 710,134 860,65 1170,48">
+                                    <Path.Stroke>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="Transparent" Offset="0" />
+                                            <GradientStop Color="{Binding HeroAccentHex, Converter={StaticResource HexToColor}}" Offset="0.5" />
+                                            <GradientStop Color="Transparent" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Path.Stroke>
+                                </Path>
+                            </Canvas>
+                        </Viewbox>
+
+                        <!-- Subtle Perspective Windows 4-Pane Logo on the Right -->
+                        <Viewbox Width="138" Height="124" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,4,48,0" Opacity="0.62">
+                            <Canvas Width="140" Height="126">
+                                <!-- Top-Left Pane -->
+                                <Path Data="M16,28 L66,20 L66,61 L16,61 Z">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#38D989" Offset="0" />
+                                            <GradientStop Color="#115E59" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                </Path>
+                                <!-- Top-Right Pane -->
+                                <Path Data="M72,19 L128,10 L128,61 L72,61 Z">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#4ADE80" Offset="0" />
+                                            <GradientStop Color="#0F766E" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                </Path>
+                                <!-- Bottom-Left Pane -->
+                                <Path Data="M16,67 L66,67 L66,108 L16,100 Z">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#22C55E" Offset="0" />
+                                            <GradientStop Color="#0D4F4B" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                </Path>
+                                <!-- Bottom-Right Pane -->
+                                <Path Data="M72,67 L128,67 L128,118 L72,109 Z">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#34D399" Offset="0" />
+                                            <GradientStop Color="#0B463F" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                </Path>
+                            </Canvas>
+                        </Viewbox>
+                    </Grid>
+
+                    <!-- Foreground Hero Layout -->
+                    <Grid Margin="34,10,30,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="170" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Large 3D-Styled Glowing Shield Illustration -->
+                        <Grid Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="136" Height="136">
+                            <!-- Concentric base glow rings -->
+                            <Ellipse Width="126" Height="24" VerticalAlignment="Bottom" Margin="0,0,0,4" Opacity="0.32"
+                                     Stroke="{Binding HeroAccentHex, Converter={StaticResource HexToBrush}}" StrokeThickness="1.5" />
+                            <Ellipse Width="88" Height="16" VerticalAlignment="Bottom" Margin="0,0,0,9" Opacity="0.55"
+                                     Stroke="{Binding HeroAccentHex, Converter={StaticResource HexToBrush}}" StrokeThickness="1.2" />
+
+                            <Viewbox Width="100" Height="114" VerticalAlignment="Center" Margin="0,-6,0,0">
+                                <Canvas Width="110" Height="126">
+                                    <!-- Outer luminous rim -->
+                                    <Path Data="M55,6 L100,24 L97,62 C96,89 79,108 55,119 C31,108 14,89 13,62 L10,24 Z">
+                                        <Path.Fill>
+                                            <LinearGradientBrush StartPoint="0.1,0" EndPoint="0.9,1">
+                                                <GradientStop Color="#9BF6C0" Offset="0.0" />
+                                                <GradientStop Color="{Binding HeroAccentHex, Converter={StaticResource HexToColor}}" Offset="0.45" />
+                                                <GradientStop Color="#0D5C34" Offset="1.0" />
+                                            </LinearGradientBrush>
+                                        </Path.Fill>
+                                        <Path.Effect>
+                                            <DropShadowEffect Color="{Binding HeroAccentHex, Converter={StaticResource HexToColor}}" BlurRadius="26" ShadowDepth="0" Opacity="0.65" />
+                                        </Path.Effect>
+                                    </Path>
+
+                                    <!-- Inner sculpted surface -->
+                                    <Path Data="M55,13 L93,28.5 L90.5,61 C89.6,84.5 75,101 55,110.5 C35,101 20.4,84.5 19.5,61 L17,28.5 Z">
+                                        <Path.Fill>
+                                            <LinearGradientBrush StartPoint="0.2,0" EndPoint="0.85,1">
+                                                <GradientStop Color="{Binding HeroAccentHex, Converter={StaticResource HexToColor}}" Offset="0.0" />
+                                                <GradientStop Color="#12683B" Offset="0.72" />
+                                                <GradientStop Color="#0B3B28" Offset="1.0" />
+                                            </LinearGradientBrush>
+                                        </Path.Fill>
+                                    </Path>
+
+                                    <!-- Glossy left highlight -->
+                                    <Path Data="M55,13 L17,28.5 L19.5,61 C20.4,84.5 35,101 55,110.5 Z" Opacity="0.18" Fill="#FFFFFF" />
+
+                                    <!-- Bold Checkmark (Protected) -->
+                                    <Path Data="M35,61 L49,75 L77,45"
+                                          Stroke="#FFFFFF"
+                                          StrokeThickness="8.5"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          StrokeLineJoin="Round"
+                                          Visibility="{Binding IsHeroHealthy, Converter={StaticResource BoolToVis}}" />
+
+                                    <!-- Bold Exclamation (Warning / Threat / Disabled / Offline) -->
+                                    <Path Data="M55,38 L55,69 M55,83 L55,85"
+                                          Stroke="#FFFFFF"
+                                          StrokeThickness="9"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          Visibility="{Binding IsHeroHealthy, Converter={StaticResource InverseBoolToVis}}" />
+                                </Canvas>
+                            </Viewbox>
+                        </Grid>
+
+                        <!-- Hero Status Text & Engine Telemetry Lines -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,0,0">
+                            <TextBlock Text="{Binding HeroTitle}" Style="{StaticResource HeroTitleStyle}" FontSize="26" />
+                            <TextBlock Text="{Binding HeroSubtitle}"
+                                       FontSize="13.5"
+                                       Foreground="#C2D3E3"
+                                       Margin="0,2,0,8" />
+
+                            <!-- Bullet 1: Real-time protection -->
+                            <StackPanel Orientation="Horizontal" Margin="0,1.5">
+                                <Border Width="15" Height="15" CornerRadius="7.5" Background="{Binding HeroAccentHex, Converter={StaticResource HexToBrush}}" Margin="0,0,8,0">
+                                    <Path Data="{StaticResource IconCheck}" Fill="#061810" Width="9" Height="9" Stretch="Uniform" />
+                                </Border>
+                                <TextBlock Text="Bảo vệ thời gian thực: " FontSize="12.5" Foreground="#B5C7D8" />
+                                <TextBlock Text="{Binding HeroRealtimeText}" FontSize="12.5" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                            </StackPanel>
+
+                            <!-- Bullet 2: Malware database version -->
+                            <StackPanel Orientation="Horizontal" Margin="0,2.5,0,1.5">
+                                <Border Width="15" Height="15" CornerRadius="7.5" Background="{Binding HeroAccentHex, Converter={StaticResource HexToBrush}}" Margin="0,0,8,0">
+                                    <Path Data="{StaticResource IconCheck}" Fill="#061810" Width="9" Height="9" Stretch="Uniform" />
+                                </Border>
+                                <TextBlock Text="Cơ sở dữ liệu mã độc: " FontSize="12.5" Foreground="#B5C7D8" />
+                                <TextBlock Text="{Binding DatabaseVersion}" FontSize="12.5" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                            </StackPanel>
+
+                            <!-- Bullet 3: Last scan timestamp -->
+                            <StackPanel Orientation="Horizontal" Margin="0,2.5,0,0">
+                                <Border Width="15" Height="15" CornerRadius="7.5" Background="{Binding HeroAccentHex, Converter={StaticResource HexToBrush}}" Margin="0,0,8,0">
+                                    <Path Data="{StaticResource IconCheck}" Fill="#061810" Width="9" Height="9" Stretch="Uniform" />
+                                </Border>
+                                <TextBlock Text="Lần quét gần nhất: " FontSize="12.5" Foreground="#B5C7D8" />
+                                <TextBlock Text="{Binding LastScanDisplay}" FontSize="12.5" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- ==================== 2. FOUR QUICK ACTION CARDS ==================== -->
+            <Grid Margin="0,13,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- 1. Quét nhanh (Primary Emerald Gradient) -->
+                <Button Grid.Column="0" Style="{StaticResource QuickActionPrimaryCardButton}" Command="{Binding RunQuickScanCommand}" Height="66">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Path Data="{StaticResource IconBolt}" Fill="#062012" Width="21" Height="21" Stretch="Uniform" VerticalAlignment="Center" Margin="2,0,12,0" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Quét nhanh" FontSize="14.5" FontWeight="Bold" Foreground="#061E11" />
+                            <TextBlock Text="Kiểm tra các vị trí quan trọng" FontSize="11.5" Foreground="#0B331E" Margin="0,1,0,0" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <Path Grid.Column="2" Data="{StaticResource IconChevronRight}" Fill="#082817" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                    </Grid>
+                </Button>
+
+                <!-- 2. Quét toàn bộ -->
+                <Button Grid.Column="2" Style="{StaticResource QuickActionDarkCardButton}" Command="{Binding RunFullScanCommand}" Height="66">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Path Data="{StaticResource IconHardDrive}" Fill="#D0DCEB" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Center" Margin="2,0,12,0" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Quét toàn bộ" FontSize="14.5" FontWeight="SemiBold" Foreground="#F1F5F9" />
+                            <TextBlock Text="Quét toàn bộ hệ thống" FontSize="11.5" Foreground="#889BB0" Margin="0,1,0,0" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <Path Grid.Column="2" Data="{StaticResource IconChevronRight}" Fill="#64748B" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                    </Grid>
+                </Button>
+
+                <!-- 3. Quét tùy chỉnh -->
+                <Button Grid.Column="4" Style="{StaticResource QuickActionDarkCardButton}" Command="{Binding OpenCustomScanCommand}" Height="66">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Path Data="{StaticResource IconFolder}" Fill="#D0DCEB" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Center" Margin="2,0,12,0" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Quét tùy chỉnh" FontSize="14.5" FontWeight="SemiBold" Foreground="#F1F5F9" />
+                            <TextBlock Text="Chọn thư mục hoặc tệp" FontSize="11.5" Foreground="#889BB0" Margin="0,1,0,0" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <Path Grid.Column="2" Data="{StaticResource IconChevronRight}" Fill="#64748B" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                    </Grid>
+                </Button>
+
+                <!-- 4. Cập nhật CSDL -->
+                <Button Grid.Column="6" Style="{StaticResource QuickActionDarkCardButton}" Command="{Binding OpenUpdatesCommand}" Height="66">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Path Data="{StaticResource IconSync}" Fill="#D0DCEB" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Center" Margin="2,0,12,0" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Cập nhật CSDL" FontSize="14.5" FontWeight="SemiBold" Foreground="#F1F5F9" />
+                            <TextBlock Text="Tải về chữ ký mã độc mới" FontSize="11.5" Foreground="#889BB0" Margin="0,1,0,0" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <Path Grid.Column="2" Data="{StaticResource IconChevronRight}" Fill="#64748B" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                    </Grid>
+                </Button>
+            </Grid>
+
+            <!-- ==================== 3. MIDDLE ANALYTICS ROW ==================== -->
+            <Grid Margin="0,13,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.08*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="0.92*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Thống kê bảo mật (4 Accented Stat Tiles + Time Filter) -->
+                <Border Grid.Column="0" Style="{StaticResource KryvnixCardStyle}" Padding="16,13">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="{StaticResource IconBarChart}" Fill="#38BDF8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                                <TextBlock Text="Thống kê bảo mật" Style="{StaticResource SectionTitleStyle}" />
+                            </StackPanel>
+
+                            <ComboBox Style="{StaticResource KryvnixComboBox}"
+                                      ItemsSource="{Binding TimeRangeOptions}"
+                                      SelectedIndex="{Binding SelectedTimeRangeIndex, Mode=TwoWay}"
+                                      Width="126"
+                                      HorizontalAlignment="Right" />
+                        </Grid>
+
+                        <Grid Grid.Row="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="10" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Stat 1: Tổng số tệp đã quét (Blue) -->
+                            <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource StatBlueCardBrush}" BorderBrush="#254468" BorderThickness="1" CornerRadius="12" Padding="14,11">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="38" Height="38" CornerRadius="10" Background="#1D3858" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource IconFileScan}" Fill="#38BDF8" Width="18" Height="18" Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Tổng số tệp đã quét" FontSize="11.5" Foreground="#9AB0C7" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding TotalFilesScanned, Converter={StaticResource DotNumber}}"
+                                                   Style="{StaticResource StatNumberStyle}" FontSize="23" Foreground="#F8FAFC" Margin="0,1,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Stat 2: Mối đe dọa phát hiện (Red) -->
+                            <Border Grid.Row="0" Grid.Column="2" Background="{StaticResource StatRedCardBrush}" BorderBrush="#592832" BorderThickness="1" CornerRadius="12" Padding="14,11">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="38" Height="38" CornerRadius="10" Background="#412028" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource IconShieldAlert}" Fill="#EF4444" Width="18" Height="18" Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Mối đe dọa phát hiện" FontSize="11.5" Foreground="#D4A5AD" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding ThreatsDetected, Converter={StaticResource DotNumber}}"
+                                                   Style="{StaticResource StatNumberStyle}" FontSize="23" Foreground="#F87171" Margin="0,1,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Stat 3: Tệp đang cách ly (Amber) -->
+                            <Border Grid.Row="2" Grid.Column="0" Background="{StaticResource StatAmberCardBrush}" BorderBrush="#574122" BorderThickness="1" CornerRadius="12" Padding="14,11">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="38" Height="38" CornerRadius="10" Background="#40311C" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource IconLock}" Fill="#F59E0B" Width="17" Height="18" Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Tệp đang cách ly" FontSize="11.5" Foreground="#D1BC9D" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding QuarantinedFilesCount, Converter={StaticResource DotNumber}}"
+                                                   Style="{StaticResource StatNumberStyle}" FontSize="23" Foreground="#FBBF24" Margin="0,1,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Stat 4: Chữ ký mã độc trong CSDL (Emerald) -->
+                            <Border Grid.Row="2" Grid.Column="2" Background="{StaticResource StatEmeraldCardBrush}" BorderBrush="#1E4E3D" BorderThickness="1" CornerRadius="12" Padding="14,11">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="38" Height="38" CornerRadius="10" Background="#163E30" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource IconDatabase}" Fill="#22C55E" Width="18" Height="18" Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Chữ ký mã độc trong CSDL" FontSize="11.5" Foreground="#9AC9B8" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding DatabaseSignaturesCount, Converter={StaticResource DotNumber}}"
+                                                   Style="{StaticResource StatNumberStyle}" FontSize="23" Foreground="#34D399" Margin="0,1,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Right: Phân loại mối đe dọa (LiveCharts2 Doughnut Chart + Calculated Legend) -->
+                <Border Grid.Column="2" Style="{StaticResource KryvnixCardStyle}" Padding="16,13">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
+                            <Path Data="{StaticResource IconBarChart}" Fill="#38BDF8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                            <TextBlock Text="Phân loại mối đe dọa" Style="{StaticResource SectionTitleStyle}" />
+                        </StackPanel>
+
+                        <Grid Grid.Row="1" VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="172" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- LiveCharts2 Doughnut + Centered Total Overlay -->
+                            <Grid Grid.Column="0" Width="162" Height="162" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <lvc:PieChart Series="{Binding ThreatChartSeries}"
+                                              InitialRotation="-90"
+                                              LegendPosition="Hidden"
+                                              Background="Transparent" />
+
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                    <TextBlock Text="{Binding ThreatsDetected, Converter={StaticResource DotNumber}}"
+                                               FontSize="24"
+                                               FontWeight="Bold"
+                                               Foreground="#FFFFFF"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock Text="phát hiện"
+                                               FontSize="11.5"
+                                               Foreground="#94A3B8"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,-2,0,0" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Right-side Category Breakdown Legend -->
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding ThreatBreakdown}" VerticalAlignment="Center" Margin="6,0,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2.5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Ellipse Width="9" Height="9"
+                                                     Fill="{Binding ColorHex, Converter={StaticResource HexToBrush}}"
+                                                     VerticalAlignment="Center"
+                                                     Margin="0,0,10,0" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding DisplayName}"
+                                                       FontSize="13"
+                                                       Foreground="#E2E8F0"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding FormattedStat}"
+                                                       FontSize="12.5"
+                                                       FontWeight="Medium"
+                                                       Foreground="#CBD5E1"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ==================== 4. BOTTOM ACTIVITY & REALTIME ROW ==================== -->
+            <Grid Margin="0,13,0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.08*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="0.92*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Lịch sử hoạt động gần đây -->
+                <Border Grid.Column="0" Style="{StaticResource KryvnixCardStyle}" Padding="16,13">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,6">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="{StaticResource IconHistory}" Fill="#94A3B8" Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                                <TextBlock Text="Lịch sử hoạt động gần đây" Style="{StaticResource SectionTitleStyle}" />
+                            </StackPanel>
+
+                            <Button Content="Xem tất cả →"
+                                    Command="{Binding ViewAllHistoryCommand}"
+                                    Style="{StaticResource KryvnixGhostButton}"
+                                    HorizontalAlignment="Right" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding RecentActivities}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#1E2B3C" BorderThickness="0,1,0,0" Padding="0,7.5">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Width="30" Height="30" CornerRadius="15"
+                                                    Background="{Binding EventType, Converter={StaticResource ActivityTypeToBg}}"
+                                                    Margin="0,0,11,0" VerticalAlignment="Center">
+                                                <Path Data="{Binding EventType, Converter={StaticResource ActivityTypeToIcon}}"
+                                                      Fill="{Binding EventType, Converter={StaticResource ActivityTypeToBrush}}"
+                                                      Width="14" Height="14" Stretch="Uniform" />
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="#F1F5F9" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Description}" FontSize="11.5" Foreground="#8A9BB0" TextTrimming="CharacterEllipsis" Margin="0,1,0,0" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding CreatedAt, Converter={StaticResource RelativeTime}}"
+                                                       FontSize="11.5"
+                                                       Foreground="#7D91A8"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Right: Bảo vệ thời gian thực Quick Control Card -->
+                <Border Grid.Column="2" Style="{StaticResource KryvnixCardStyle}" Padding="16,13">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="{StaticResource IconShieldCheck}" Fill="#E2E8F0" Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                                <TextBlock Text="Bảo vệ thời gian thực" Style="{StaticResource SectionTitleStyle}" />
+                            </StackPanel>
+
+                            <CheckBox Style="{StaticResource KryvnixToggleSwitch}"
+                                      IsChecked="{Binding IsRealtimeMasterEnabled, Mode=TwoWay}"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Center"
+                                      ToolTip="Bật / Tắt bảo vệ thời gian thực" />
+                        </Grid>
+
+                        <!-- Module 1: Giám sát tệp tin -->
+                        <Border BorderBrush="#1E2B3C" BorderThickness="0,1,0,0" Padding="0,8">
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IconFolder}" Fill="#94A3B8" Width="15" Height="15" Stretch="Uniform" Margin="0,0,11,0" />
+                                    <TextBlock Text="Giám sát tệp tin" FontSize="13" Foreground="#E2E8F0" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <Border HorizontalAlignment="Right" CornerRadius="6" Padding="9,3"
+                                        Background="{Binding IsFileMonitorActive, Converter={StaticResource BoolToActivePillBg}}">
+                                    <TextBlock Text="{Binding IsFileMonitorActive, Converter={StaticResource BoolToActiveText}}"
+                                               Foreground="{Binding IsFileMonitorActive, Converter={StaticResource BoolToActiveBrush}}"
+                                               FontSize="11" FontWeight="SemiBold" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Module 2: Giám sát tiến trình -->
+                        <Border BorderBrush="#1E2B3C" BorderThickness="0,1,0,0" Padding="0,8">
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IconGridApps}" Fill="#94A3B8" Width="14" Height="14" Stretch="Uniform" Margin="0,0,12,0" />
+                                    <TextBlock Text="Giám sát tiến trình" FontSize="13" Foreground="#E2E8F0" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <Border HorizontalAlignment="Right" CornerRadius="6" Padding="9,3"
+                                        Background="{Binding IsProcessMonitorActive, Converter={StaticResource BoolToActivePillBg}}">
+                                    <TextBlock Text="{Binding IsProcessMonitorActive, Converter={StaticResource BoolToActiveText}}"
+                                               Foreground="{Binding IsProcessMonitorActive, Converter={StaticResource BoolToActiveBrush}}"
+                                               FontSize="11" FontWeight="SemiBold" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Module 3: Chặn truy cập nguy hiểm -->
+                        <Border BorderBrush="#1E2B3C" BorderThickness="0,1,0,0" Padding="0,8">
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IconGlobe}" Fill="#94A3B8" Width="15" Height="15" Stretch="Uniform" Margin="0,0,11,0" />
+                                    <TextBlock Text="Chặn truy cập nguy hiểm" FontSize="13" Foreground="#E2E8F0" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <Border HorizontalAlignment="Right" CornerRadius="6" Padding="9,3"
+                                        Background="{Binding IsNetworkShieldActive, Converter={StaticResource BoolToActivePillBg}}">
+                                    <TextBlock Text="{Binding IsNetworkShieldActive, Converter={StaticResource BoolToActiveText}}"
+                                               Foreground="{Binding IsNetworkShieldActive, Converter={StaticResource BoolToActiveBrush}}"
+                                               FontSize="11" FontWeight="SemiBold" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Module 4: Phát hiện hành vi bất thường -->
+                        <Border BorderBrush="#1E2B3C" BorderThickness="0,1,0,0" Padding="0,8,0,2">
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource IconShieldCheck}" Fill="#94A3B8" Width="15" Height="15" Stretch="Uniform" Margin="0,0,11,0" />
+                                    <TextBlock Text="Phát hiện hành vi bất thường" FontSize="13" Foreground="#E2E8F0" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <Border HorizontalAlignment="Right" CornerRadius="6" Padding="9,3"
+                                        Background="{Binding IsBehaviorMonitorActive, Converter={StaticResource BoolToActivePillBg}}">
+                                    <TextBlock Text="{Binding IsBehaviorMonitorActive, Converter={StaticResource BoolToActiveText}}"
+                                               Foreground="{Binding IsBehaviorMonitorActive, Converter={StaticResource BoolToActiveBrush}}"
+                                               FontSize="11" FontWeight="SemiBold" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

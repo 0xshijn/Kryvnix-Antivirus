@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/desktop/">
+    <Project Path="desktop/KryvnixAntivirus.Desktop/KryvnixAntivirus.Desktop.csproj" />
+    <Project Path="desktop/KryvnixAntivirus.Tests/KryvnixAntivirus.Tests.csproj" />
+  </Folder>
+</Solution>

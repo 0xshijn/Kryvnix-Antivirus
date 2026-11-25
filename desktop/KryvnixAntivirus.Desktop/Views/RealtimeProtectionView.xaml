@@ -1,0 +1,239 @@
+<UserControl x:Class="KryvnixAntivirus.Desktop.Views.RealtimeProtectionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,4,0">
+
+            <!-- Master Control Card -->
+            <Border Style="{StaticResource KryvnixCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="52" Height="52" CornerRadius="14" Background="#133628" Margin="0,0,16,0" VerticalAlignment="Center">
+                        <Path Data="{StaticResource IconShieldCheck}" Fill="#22C55E" Width="26" Height="26" Stretch="Uniform" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="Bảo vệ thời gian thực chủ động" FontSize="18" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                        <TextBlock Text="Tự động kiểm tra mọi tệp tin mới tạo hoặc chỉnh sửa trong các thư mục trọng yếu bằng FileSystemWatcher và bộ phân tích đa tầng."
+                                   Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,3,0,0" />
+                    </StackPanel>
+
+                    <CheckBox Grid.Column="2"
+                              Style="{StaticResource KryvnixToggleSwitch}"
+                              IsChecked="{Binding IsMasterEnabled, Mode=TwoWay}"
+                              VerticalAlignment="Center" Margin="16,0,0,0" />
+                </Grid>
+            </Border>
+
+            <!-- 4 Protection Modules (2x2 Grid) -->
+            <Grid Margin="0,16,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="14" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- 1. File System Monitor -->
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource KryvnixCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="40" Height="40" CornerRadius="10" Background="#16293F" Margin="0,0,14,0" VerticalAlignment="Top">
+                            <Path Data="{StaticResource IconFolder}" Fill="#38BDF8" Width="19" Height="19" Stretch="Uniform" />
+                        </Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Giám sát tệp tin" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Text="Quét tức thì tệp tải về và tệp mới ghi vào đĩa qua hàng đợi bất đồng bộ." Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <CheckBox Grid.Column="2" Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding FileMonitorEnabled, Mode=TwoWay}" VerticalAlignment="Top" Margin="12,2,0,0" />
+                    </Grid>
+                </Border>
+
+                <!-- 2. Process Monitor -->
+                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource KryvnixCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="40" Height="40" CornerRadius="10" Background="#143528" Margin="0,0,14,0" VerticalAlignment="Top">
+                            <Path Data="{StaticResource IconGridApps}" Fill="#22C55E" Width="18" Height="18" Stretch="Uniform" />
+                        </Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Giám sát tiến trình" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Text="Phát hiện hành vi chèn mã (Process Injection) và thực thi tiến trình lạ." Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <CheckBox Grid.Column="2" Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding ProcessMonitorEnabled, Mode=TwoWay}" VerticalAlignment="Top" Margin="12,2,0,0" />
+                    </Grid>
+                </Border>
+
+                <!-- 3. Network Threat Blocker -->
+                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource KryvnixCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="40" Height="40" CornerRadius="10" Background="#2E2216" Margin="0,0,14,0" VerticalAlignment="Top">
+                            <Path Data="{StaticResource IconGlobe}" Fill="#F59E0B" Width="19" Height="19" Stretch="Uniform" />
+                        </Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Chặn truy cập nguy hiểm" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Text="Chặn tên miền độc hại, máy chủ C2 và liên kết lừa đảo nguy hiểm." Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <CheckBox Grid.Column="2" Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding NetworkShieldEnabled, Mode=TwoWay}" VerticalAlignment="Top" Margin="12,2,0,0" />
+                    </Grid>
+                </Border>
+
+                <!-- 4. Behavior & Heuristic Shield -->
+                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource KryvnixCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="40" Height="40" CornerRadius="10" Background="#2E1B28" Margin="0,0,14,0" VerticalAlignment="Top">
+                            <Path Data="{StaticResource IconShieldCheck}" Fill="#A78BFA" Width="19" Height="19" Stretch="Uniform" />
+                        </Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Phát hiện hành vi bất thường" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Text="Đánh giá điểm Entropy PE, section RWX và Win32 API đáng ngờ." Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <CheckBox Grid.Column="2" Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding BehaviorMonitorEnabled, Mode=TwoWay}" VerticalAlignment="Top" Margin="12,2,0,0" />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Policy Tuning Bar -->
+            <Border Style="{StaticResource KryvnixCardStyle}" Margin="0,16,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <Grid>
+                            <TextBlock Text="Độ nhạy phân tích Heuristic" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Text="{Binding SensitivityLabel}" Foreground="#22C55E" FontSize="12.5" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+                        <Slider Minimum="1" Maximum="3" Value="{Binding HeuristicSensitivity, Mode=TwoWay}"
+                                TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,10,0,0" />
+                    </StackPanel>
+
+                    <Grid Grid.Column="2" VerticalAlignment="Center">
+                        <StackPanel>
+                            <TextBlock Text="Tự động cách ly khi phát hiện thời gian thực" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Text="Mã hóa AES-256-GCM và cách ly ngay tệp độc hại không cần chờ xác nhận." Style="{StaticResource SecondaryTextStyle}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding AutoQuarantineRealtime, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Exclusions + Live Monitor Feed -->
+            <Grid Margin="0,16,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.1*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="0.9*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Exclusion Filter Manager -->
+                <Border Grid.Column="0" Style="{StaticResource KryvnixCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Bộ lọc ngoại lệ (Exclusions)" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox Grid.Column="0" Style="{StaticResource KryvnixComboBox}" ItemsSource="{Binding ExclusionTypes}" SelectedItem="{Binding NewExclusionType, Mode=TwoWay}" />
+                            <TextBox Grid.Column="2" Style="{StaticResource KryvnixTextBox}" Text="{Binding NewExclusionValue, UpdateSourceTrigger=PropertyChanged}" ToolTip="Nhập đường dẫn hoặc đuôi tệp (vd: .log)" />
+                            <Button Grid.Column="4" Content="Duyệt..." Command="{Binding BrowseExclusionFolderCommand}" Style="{StaticResource KryvnixSecondaryButton}" Padding="10,7" />
+                            <Button Grid.Column="6" Content="Thêm" Command="{Binding AddExclusionCommand}" Style="{StaticResource KryvnixPrimaryButton}" Padding="14,7" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Exclusions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#101925" BorderBrush="#233144" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,4">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Background="#192A3E" CornerRadius="6" Padding="8,2" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ExclusionType}" FontSize="11" FontWeight="SemiBold" Foreground="#38BDF8" />
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Value}" FontSize="13" Foreground="#F1F5F9" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Reason}" FontSize="11" Foreground="#64748B" />
+                                            </StackPanel>
+                                            <Button Grid.Column="2" Content="Xóa"
+                                                    Command="{Binding DataContext.RemoveExclusionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource KryvnixGhostButton}" Foreground="#F87171" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Live Monitor Telemetry Log -->
+                <Border Grid.Column="2" Style="{StaticResource KryvnixCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Luồng giám sát thời gian thực" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,8" />
+                        <TextBlock Text="Thư mục đang theo dõi:" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{Binding MonitoredPaths}" Margin="0,0,0,10">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding StringFormat='• {0}'}" FontSize="12" Foreground="#4ADE80" Margin="0,1" TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border Background="#0B121C" BorderBrush="#202D3E" BorderThickness="1" CornerRadius="10" Padding="10" Height="195">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding LiveMonitorLogs}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

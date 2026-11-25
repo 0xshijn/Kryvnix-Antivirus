@@ -1,0 +1,150 @@
+<UserControl x:Class="KryvnixAntivirus.Desktop.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,4,0">
+
+            <!-- General & System Tray -->
+            <Border Style="{StaticResource KryvnixCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Cài đặt chung &amp; Khay hệ thống" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,12" />
+
+                    <Grid Margin="0,8">
+                        <StackPanel>
+                            <TextBlock Text="Khởi động cùng Windows" Style="{StaticResource BodyTextStyle}" FontWeight="Medium" />
+                            <TextBlock Text="Tự động kích hoạt Kryvnix Antivirus khi đăng nhập hệ điều hành." Style="{StaticResource SecondaryTextStyle}" />
+                        </StackPanel>
+                        <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding StartWithWindows, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <Border Height="1" Background="#1E2B3C" Margin="0,4" />
+
+                    <Grid Margin="0,8">
+                        <StackPanel>
+                            <TextBlock Text="Thu nhỏ xuống khay hệ thống khi đóng cửa sổ" Style="{StaticResource BodyTextStyle}" FontWeight="Medium" />
+                            <TextBlock Text="Giữ dịch vụ bảo vệ thời gian thực tiếp tục hoạt động ở chế độ nền." Style="{StaticResource SecondaryTextStyle}" />
+                        </StackPanel>
+                        <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding MinimizeToTrayOnClose, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <Border Height="1" Background="#1E2B3C" Margin="0,4" />
+
+                    <Grid Margin="0,8">
+                        <StackPanel>
+                            <TextBlock Text="Hiển thị thông báo Desktop (System Tray Alerts)" Style="{StaticResource BodyTextStyle}" FontWeight="Medium" />
+                            <TextBlock Text="Cảnh báo ngay lập tức khi phát hiện mã độc hoặc hoàn tất cập nhật." Style="{StaticResource SecondaryTextStyle}" />
+                        </StackPanel>
+                        <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding ShowDesktopNotifications, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Scanner & Heuristic Engine -->
+            <Border Style="{StaticResource KryvnixCardStyle}" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="Hiệu năng quét &amp; Phân tích Heuristic" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,14" />
+
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <Grid>
+                                <TextBlock Text="Số luồng quét song song (Multithread)" Style="{StaticResource BodyTextStyle}" />
+                                <TextBlock Text="{Binding ScanThreadCount, StringFormat='{}{0} luồng'}" Foreground="#22C55E" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                            </Grid>
+                            <Slider Minimum="1" Maximum="{Binding MaxThreadCount}" Value="{Binding ScanThreadCount, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="1" Margin="0,8,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <Grid>
+                                <TextBlock Text="Ngưỡng điểm Heuristic PE (0–100)" Style="{StaticResource BodyTextStyle}" />
+                                <TextBlock Text="{Binding HeuristicThreshold}" Foreground="#F59E0B" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                            </Grid>
+                            <Slider Minimum="40" Maximum="95" Value="{Binding HeuristicThreshold, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="5" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Kích thước tệp tối đa được quét (MB)" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,0,6" />
+                            <TextBox Style="{StaticResource KryvnixTextBox}" Text="{Binding MaxFileSizeMb, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Hành động mặc định khi phát hiện" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,0,6" />
+                            <ComboBox Style="{StaticResource KryvnixComboBox}" ItemsSource="{Binding DefaultActionOptions}" SelectedItem="{Binding DefaultThreatAction, Mode=TwoWay}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Windows Service Named Pipe IPC & Central Backend API -->
+            <Border Style="{StaticResource KryvnixCardStyle}" Margin="0,16,0,0">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Kết nối C++ Engine (Named Pipe IPC) &amp; Backend API" Style="{StaticResource SectionTitleStyle}" />
+                        <Border HorizontalAlignment="Right" Background="#142B27" CornerRadius="8" Padding="10,4">
+                            <TextBlock Text="{Binding EngineModeLabel}" FontSize="12" FontWeight="SemiBold" Foreground="#4ADE80" />
+                        </Border>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Tên Windows Named Pipe" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,0,5" />
+                            <TextBox Style="{StaticResource KryvnixTextBox}" Text="{Binding NamedPipeName, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Địa chỉ máy chủ REST API trung tâm" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,0,5" />
+                            <TextBox Style="{StaticResource KryvnixTextBox}" Text="{Binding BackendApiBaseUrl, Mode=TwoWay}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,6,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Mô phỏng trạng thái Dịch vụ không khả dụng (Kiểm thử UI)" Style="{StaticResource BodyTextStyle}" FontWeight="Medium" />
+                            <TextBlock Text="Cho phép kiểm chứng trạng thái Service Unavailable trên Dashboard Hero Card." Style="{StaticResource SecondaryTextStyle}" />
+                        </StackPanel>
+                        <CheckBox Style="{StaticResource KryvnixToggleSwitch}" IsChecked="{Binding SimulateServiceUnavailable, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                        <Button Content="Kiểm tra Named Pipe" Command="{Binding TestNamedPipeCommand}" Style="{StaticResource KryvnixSecondaryButton}" Margin="0,0,10,0" />
+                        <Button Content="Gửi Device Heartbeat" Command="{Binding SendHeartbeatCommand}" Style="{StaticResource KryvnixSecondaryButton}" Margin="0,0,14,0" />
+                        <TextBlock Text="{Binding PendingSyncCount, StringFormat='Hàng đợi đồng bộ ngoại tuyến: {0} mục'}" VerticalAlignment="Center" Style="{StaticResource SecondaryTextStyle}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding DatabasePath, StringFormat='CSDL SQLite cục bộ: {0}'}" FontSize="11.5" Foreground="#64748B" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Save & Reset Action Footer -->
+            <Border Style="{StaticResource KryvnixCardStyle}" Margin="0,16,0,4" Padding="16">
+                <Grid>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#4ADE80" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,260,0" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Khôi phục dữ liệu mẫu" Command="{Binding ResetSampleDataCommand}" Style="{StaticResource KryvnixSecondaryButton}" Margin="0,0,10,0" />
+                        <Button Content="Lưu tất cả cài đặt" Command="{Binding SaveSettingsCommand}" Style="{StaticResource KryvnixPrimaryButton}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

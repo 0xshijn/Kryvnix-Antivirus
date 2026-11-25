@@ -1,0 +1,35 @@
+<Application x:Class="KryvnixAntivirus.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:KryvnixAntivirus.Desktop.Converters"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/Colors.xaml" />
+                <ResourceDictionary Source="Styles/Typography.xaml" />
+                <ResourceDictionary Source="Styles/Icons.xaml" />
+                <ResourceDictionary Source="Styles/Controls.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Global Converters -->
+            <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+            <conv:BoolToVisibilityConverter x:Key="InverseBoolToVis" Invert="True" />
+            <conv:InverseBoolConverter x:Key="InverseBool" />
+            <conv:PositiveIntToVisibilityConverter x:Key="PositiveIntToVis" />
+            <conv:HexToBrushConverter x:Key="HexToBrush" />
+            <conv:HexToColorConverter x:Key="HexToColor" />
+            <conv:DotNumberConverter x:Key="DotNumber" />
+            <conv:RelativeTimeConverter x:Key="RelativeTime" />
+            <conv:FileSizeConverter x:Key="FileSize" />
+            <conv:SeverityToColorBrushConverter x:Key="SeverityToBrush" />
+            <conv:SeverityToBgBrushConverter x:Key="SeverityToBg" />
+            <conv:ActivityTypeToAccentBrushConverter x:Key="ActivityTypeToBrush" />
+            <conv:ActivityTypeToBadgeBgConverter x:Key="ActivityTypeToBg" />
+            <conv:ActivityTypeToIconGeometryConverter x:Key="ActivityTypeToIcon" />
+            <conv:BoolToStatusTextConverter x:Key="BoolToActiveText" />
+            <conv:BoolToStatusBrushConverter x:Key="BoolToActiveBrush" />
+            <conv:BoolToStatusPillBgConverter x:Key="BoolToActivePillBg" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
