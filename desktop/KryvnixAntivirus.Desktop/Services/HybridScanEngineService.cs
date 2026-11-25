@@ -242,6 +242,7 @@ public sealed class HybridScanEngineService : IScanEngineService
             CreatedAt = DateTime.Now
         });
 
+        var avgFps = Math.Round(filesScanned / Math.Max(0.05, sw.Elapsed.TotalSeconds), 1);
         ProgressChanged?.Invoke(this, new ScanProgressInfo
         {
             Mode = mode,
@@ -250,6 +251,7 @@ public sealed class HybridScanEngineService : IScanEngineService
             TotalEstimatedFiles = filesScanned,
             ProgressPercent = status == "Cancelled" ? 0 : 100,
             ThreatsFound = detections.Count,
+            FilesPerSecond = avgFps,
             Elapsed = sw.Elapsed,
             IsRunning = false
         });

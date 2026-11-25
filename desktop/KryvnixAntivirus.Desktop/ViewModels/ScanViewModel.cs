@@ -299,6 +299,22 @@ public partial class ScanViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void OpenVirusTotalWeb(DetectionItem? item)
+    {
+        if (item is null || string.IsNullOrWhiteSpace(item.Sha256)) return;
+        try
+        {
+            var url = $"https://www.virustotal.com/gui/file/{item.Sha256}";
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+            StatusBanner = $"Đã mở trang tra cứu VirusTotal cho {item.FileName} trên trình duyệt.";
+        }
+        catch (Exception ex)
+        {
+            StatusBanner = $"Không thể mở trình duyệt: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
     private async Task CreateAndScanSafeEicarTestAsync()
     {
         if (IsScanning) return;

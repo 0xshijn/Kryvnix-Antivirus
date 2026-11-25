@@ -289,7 +289,13 @@
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource KryvnixSecondaryButton}"
                                                     Padding="10,6" Margin="0,0,6,0"
-                                                    ToolTip="Tra cứu SHA-256 trên MalwareBazaar / VirusTotal" />
+                                                    ToolTip="Tra cứu SHA-256 trực tuyến qua CIRCL NSRL / VirusTotal API" />
+                                            <Button Content="VirusTotal"
+                                                    Command="{Binding DataContext.OpenVirusTotalWebCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource KryvnixSecondaryButton}"
+                                                    Padding="10,6" Margin="0,0,6,0"
+                                                    ToolTip="Mở báo cáo chi tiết 70+ engine trên VirusTotal.com" />
                                             <Button Content="Cách ly"
                                                     Command="{Binding DataContext.QuarantineThreatCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
